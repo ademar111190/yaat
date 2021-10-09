@@ -3,6 +3,7 @@ package ademar.template.di
 import ademar.template.BuildConfig
 import ademar.template.di.qualifiers.QualifiedRetrofit
 import ademar.template.di.qualifiers.QualifiedRetrofitOption.ALPHA_VANTAGE
+import ademar.template.network.adapter.CustomJsonFactory
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
@@ -37,7 +38,12 @@ object NetworkModule {
     ) = OkHttpClient.Builder().addInterceptor(logging).build()
 
     @[Provides Singleton]
-    fun providesMoshi(): Moshi = Moshi.Builder().build()
+    fun providesCustomJsonFactory() = CustomJsonFactory()
+
+    @[Provides Singleton]
+    fun providesMoshi(
+        customJsonFactory: CustomJsonFactory,
+    ): Moshi = Moshi.Builder().add(customJsonFactory).build()
 
     @[Provides Singleton]
     fun providesRxJava3CallAdapterFactory(): RxJava3CallAdapterFactory = RxJava3CallAdapterFactory.create()
