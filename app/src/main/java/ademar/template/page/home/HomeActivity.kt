@@ -77,6 +77,14 @@ class HomeActivity : AppCompatActivity(), Contract.View {
                 navigation.menu.findItem(id)?.isChecked = true
             }
         }
+        val initial = when (intent?.extras?.getString("INITIAL_ACTION", null)) {
+            "ademar.template.action.settings" -> R.id.navigation_settings
+            "ademar.template.action.dashboard" -> R.id.navigation_dashboard
+            else -> null
+        }
+        if (initial != null) {
+            navigation.selectedItemId = initial
+        }
     }
 
 }

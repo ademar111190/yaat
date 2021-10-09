@@ -9,7 +9,10 @@ class StartActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        startActivity(Intent(this, HomeActivity::class.java))
+        val action = intent?.action
+        val intent = Intent(this, HomeActivity::class.java)
+        intent.putExtra("INITIAL_ACTION", action)
+        startActivity(intent)
         finish()
     }
 
