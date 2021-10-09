@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Modelo</string>
-    <string name="title_home">Início</string>
-    <string name="title_dashboard">Controlador</string>
-    <string name="title_notifications">Notificações</string>
+    <string name="page_title_dashboard">Controlador</string>
+    <string name="page_title_settings">Configurações</string>
 </resources>
