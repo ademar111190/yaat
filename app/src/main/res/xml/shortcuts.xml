@@ -5,19 +5,6 @@
 
     <shortcut
         android:enabled="true"
-        android:icon="@drawable/ic_settings_shortcut"
-        android:shortcutDisabledMessage="@string/page_title_settings"
-        android:shortcutId="settings"
-        android:shortcutLongLabel="@string/page_title_settings"
-        android:shortcutShortLabel="@string/page_title_settings">
-        <intent
-            android:action="ademar.template.action.settings"
-            android:targetClass="ademar.template.MainActivity"
-            android:targetPackage="ademar.template" />
-    </shortcut>
-
-    <shortcut
-        android:enabled="true"
         android:icon="@drawable/ic_dashboard_shortcut"
         android:shortcutDisabledMessage="@string/page_title_dashboard"
         android:shortcutId="dashboard"
@@ -25,6 +12,32 @@
         android:shortcutShortLabel="@string/page_title_dashboard">
         <intent
             android:action="ademar.template.action.dashboard"
+            android:targetClass="ademar.template.MainActivity"
+            android:targetPackage="ademar.template" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_stocks_shortcut"
+        android:shortcutDisabledMessage="@string/page_title_stocks"
+        android:shortcutId="stocks"
+        android:shortcutLongLabel="@string/page_title_stocks"
+        android:shortcutShortLabel="@string/page_title_stocks">
+        <intent
+            android:action="ademar.template.action.stocks"
+            android:targetClass="ademar.template.MainActivity"
+            android:targetPackage="ademar.template" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_settings_shortcut"
+        android:shortcutDisabledMessage="@string/page_title_settings"
+        android:shortcutId="settings"
+        android:shortcutLongLabel="@string/page_title_settings"
+        android:shortcutShortLabel="@string/page_title_settings">
+        <intent
+            android:action="ademar.template.action.settings"
             android:targetClass="ademar.template.MainActivity"
             android:targetPackage="ademar.template" />
     </shortcut>

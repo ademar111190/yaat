@@ -4,6 +4,7 @@ import ademar.template.R
 import ademar.template.page.dashboard.DashboardFragment
 import ademar.template.page.home.Contract.Command.Initial
 import ademar.template.page.settings.SettingsFragment
+import ademar.template.page.stocks.StocksFragment
 import ademar.template.widget.Reselectable
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -53,6 +54,7 @@ class HomeActivity : AppCompatActivity(), Contract.View {
                     DashboardFragment()
                 }
                 R.id.navigation_settings -> SettingsFragment()
+                R.id.navigation_stocks -> StocksFragment()
                 else -> null
             }
             if (fragment != null) {
@@ -73,6 +75,7 @@ class HomeActivity : AppCompatActivity(), Contract.View {
             val id = when (supportFragmentManager.fragments.lastOrNull()) {
                 is DashboardFragment -> R.id.navigation_dashboard
                 is SettingsFragment -> R.id.navigation_settings
+                is StocksFragment -> R.id.navigation_stocks
                 else -> null
             }
             if (id != null) {
@@ -80,8 +83,9 @@ class HomeActivity : AppCompatActivity(), Contract.View {
             }
         }
         val initial = when (intent?.extras?.getString("INITIAL_ACTION", null)) {
-            "ademar.template.action.settings" -> R.id.navigation_settings
             "ademar.template.action.dashboard" -> R.id.navigation_dashboard
+            "ademar.template.action.settings" -> R.id.navigation_settings
+            "ademar.template.action.stocks" -> R.id.navigation_stocks
             else -> null
         }
         if (initial != null) {

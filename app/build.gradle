@@ -1,7 +1,7 @@
 plugins {
     id "com.android.application"
     id "kotlin-android"
-    id "kotlin-android-extensions"
+    id "kotlin-parcelize"
     id "org.jetbrains.kotlin.kapt"
     id "dagger.hilt.android.plugin"
 }
@@ -19,6 +19,9 @@ android {
     }
 
     buildTypes {
+        all {
+            buildConfigField "String", "ALPHA_VANTAGE_KEY", "\"${System.getenv("ALPHA_VANTAGE_KEY")}\""
+        }
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
