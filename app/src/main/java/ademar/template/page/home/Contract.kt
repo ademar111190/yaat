@@ -12,7 +12,7 @@ interface Contract {
 
     sealed class Command {
 
-        object Start : Command()
+        object Initial : Command()
 
         object SelectDashboard : Command()
 

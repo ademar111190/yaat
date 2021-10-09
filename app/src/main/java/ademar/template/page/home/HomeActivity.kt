@@ -2,19 +2,21 @@ package ademar.template.page.home
 
 import ademar.template.R
 import ademar.template.page.dashboard.DashboardFragment
-import ademar.template.page.home.Contract.Command.Start
+import ademar.template.page.home.Contract.Command.Initial
 import ademar.template.page.settings.SettingsFragment
 import ademar.template.widget.Reselectable
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.rxjava3.subjects.BehaviorSubject.createDefault
 import io.reactivex.rxjava3.subjects.Subject
 
+@AndroidEntryPoint
 class HomeActivity : AppCompatActivity(), Contract.View {
 
-    override val output: Subject<Contract.Command> = createDefault(Start)
+    override val output: Subject<Contract.Command> = createDefault(Initial)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
