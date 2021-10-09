@@ -7,6 +7,7 @@
     android:background="?android:attr/windowBackground">
 
     <TextView
+        android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/page_title_stocks"

@@ -1,7 +1,9 @@
 buildscript {
 
-    ext.kotlin_version = "1.5.31"
     ext.dagger_version = "2.39.1"
+    ext.kotlin_version = "1.5.31"
+    ext.moshi_version = "1.12.0"
+    ext.retrofit_version = "2.9.0"
 
     repositories {
         google()
