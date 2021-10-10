@@ -1,5 +1,10 @@
 package ademar.template.di
 
+
+import ademar.template.di.ViewModule.Declarations
+import ademar.template.page.stocks.tile.Contract
+import ademar.template.page.stocks.tile.StockTileView
+import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewComponent
@@ -11,5 +16,15 @@ import dagger.hilt.android.components.ViewComponent
  * FragmentComponent @FragmentScoped // ViewComponent @ViewScoped
  * ViewWithFragmentComponent @ViewScoped
  */
-@[Module InstallIn(ViewComponent::class)]
-object ViewModule
+@Module(includes = [Declarations::class])
+@InstallIn(ViewComponent::class)
+object ViewModule {
+
+    @[Module InstallIn(ViewComponent::class)]
+    interface Declarations {
+
+        @Binds fun bindStockTile(impl: StockTileView): Contract.View
+
+    }
+
+}

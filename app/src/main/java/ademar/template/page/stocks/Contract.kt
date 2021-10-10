@@ -17,7 +17,7 @@ interface Contract {
     }
 
     data class State(
-        val symbols: List<String>,
+        val symbols: List<Item>,
     )
 
     sealed class Model {
@@ -33,9 +33,14 @@ interface Contract {
         ) : Model()
 
         data class DataModel(
-            val symbols: List<String>,
+            val items: List<Item>,
         ) : Model()
 
     }
+
+    data class Item(
+        val symbol: String,
+        val value: Double,
+    )
 
 }

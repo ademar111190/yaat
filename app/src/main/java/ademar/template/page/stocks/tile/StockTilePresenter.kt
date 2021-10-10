@@ -1,4 +1,4 @@
-package ademar.template.page.stocks
+package ademar.template.page.stocks.tile
 
 import ademar.template.R
 import ademar.template.di.qualifiers.QualifiedScheduler
@@ -6,17 +6,17 @@ import ademar.template.di.qualifiers.QualifiedSchedulerOption.COMPUTATION
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.MAIN_THREAD
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.android.scopes.FragmentScoped
+import dagger.hilt.android.scopes.ViewScoped
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject.createDefault
 import io.reactivex.rxjava3.subjects.Subject
 import javax.inject.Inject
 
-@FragmentScoped
-class StockPresenter @Inject constructor(
+@ViewScoped
+class StockTilePresenter @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val interactor: StockInteractor,
+    private val interactor: StockTileInteractor,
     private val subscriptions: CompositeDisposable,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
     @QualifiedScheduler(MAIN_THREAD) private val mainThreadScheduler: Scheduler,
@@ -39,20 +39,23 @@ class StockPresenter @Inject constructor(
     }
 
     private fun map(state: Contract.State): Contract.Model {
-        val symbols = state.symbols
-        return if (symbols.isEmpty()) {
-            Contract.Model.Empty(
-                message = context.getString(R.string.stocks_empty),
-            )
-        } else {
-            Contract.Model.DataModel(
-                items = state.symbols,
+        return when (state) {
+            is Contract.State.InquiryState -> Contract.Model.Loading
+            is Contract.State.NoSymbol -> Contract.Model.Loading
+            is Contract.State.DataState -> Contract.Model.DataModel(
+                symbol = state.symbol,
+                value = state.value.toString(),
             )
         }
     }
 
     private fun mapError(error: Throwable) {
-        output.onNext(Contract.Model.Error(error.localizedMessage ?: error.message ?: "Unknown error"))
+        output.onNext(
+            Contract.Model.Error(
+                error.localizedMessage ?: error.message ?: "Unknown error",
+                context.getString(R.string.stocks_tile_retry),
+            )
+        )
     }
 
 }

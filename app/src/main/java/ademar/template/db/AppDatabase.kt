@@ -21,9 +21,8 @@ class AppDatabaseCreator : RoomDatabase.Callback() {
     override fun onCreate(db: SupportSQLiteDatabase) = db.run {
         beginTransaction()
         try {
-            execSQL("INSERT INTO tickers VALUES(1, 'IBM');")
-            execSQL("INSERT INTO tickers VALUES(2, 'MGLU3.SA');")
-            execSQL("INSERT INTO tickers VALUES(3, 'GOLD');")
+            execSQL("INSERT INTO tickers VALUES('IBM', 143.22);")
+            execSQL("INSERT INTO tickers VALUES('MGLU3.SA', 14.97);")
             setTransactionSuccessful()
         } finally {
             endTransaction()

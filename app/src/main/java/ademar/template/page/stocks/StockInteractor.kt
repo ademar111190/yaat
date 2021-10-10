@@ -1,8 +1,8 @@
 package ademar.template.page.stocks
 
+import ademar.template.db.AppDatabase
 import ademar.template.di.qualifiers.QualifiedScheduler
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
-import ademar.template.network.api.AlphaVantageService
 import dagger.hilt.android.scopes.FragmentScoped
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Scheduler
@@ -13,8 +13,7 @@ import javax.inject.Inject
 
 @FragmentScoped
 class StockInteractor @Inject constructor(
-    private val service: AlphaVantageService,
-    private val storage: StockStorage,
+    private val db: AppDatabase,
     private val subscriptions: CompositeDisposable,
     @QualifiedScheduler(IO) private val ioScheduler: Scheduler,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
@@ -23,22 +22,12 @@ class StockInteractor @Inject constructor(
 
     val output: Subject<Contract.State> = create()
 
-    init {
-        subscriptions.add(
-            storage.initialState()
-                .subscribeOn(computationScheduler)
-                .observeOn(mainThreadScheduler)
-                .subscribe(output::onNext, output::onError)
-        )
-    }
-
     fun bind(view: Contract.View) {
         subscriptions.add(
             view.output
                 .subscribeOn(computationScheduler)
                 .observeOn(mainThreadScheduler)
                 .flatMap(::map)
-                .doOnNext(storage::save)
                 .subscribe(output::onNext, output::onError)
         )
     }
@@ -54,14 +43,19 @@ class StockInteractor @Inject constructor(
     }
 
     private fun initial(): Observable<Contract.State> {
-        return service.timeSeriesDaily(symbol = "IBM")
+        return db.tickerDao().getAll()
             .subscribeOn(ioScheduler)
             .observeOn(mainThreadScheduler)
-            .map { response ->
-                response.metaData?.symbol ?: throw Exception("No symbol found")
+            .map { tickers ->
+                tickers.map {
+                    Contract.Item(
+                        it.symbol,
+                        it.value,
+                    )
+                }
             }
-            .map { symbol ->
-                Contract.State(listOf(symbol))
+            .map { symbols ->
+                Contract.State(symbols)
             }
             .toObservable()
     }
