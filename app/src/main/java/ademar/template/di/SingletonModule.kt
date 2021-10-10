@@ -1,10 +1,15 @@
 package ademar.template.di
 
+import ademar.template.db.AppDatabase
+import ademar.template.db.AppDatabaseCreator
 import ademar.template.di.qualifiers.QualifiedScheduler
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
+import android.content.Context
+import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Scheduler
@@ -20,6 +25,15 @@ import javax.inject.Singleton
  */
 @[Module InstallIn(SingletonComponent::class)]
 object SingletonModule {
+
+    @[Provides Singleton]
+    fun providesDatabase(
+        @ApplicationContext context: Context,
+    ) = Room.databaseBuilder(
+        context,
+        AppDatabase::class.java,
+        "template-database",
+    ).addCallback(AppDatabaseCreator()).build()
 
     @[Provides Singleton QualifiedScheduler(IO)]
     fun providesSchedulerIo(): Scheduler = Schedulers.io()
