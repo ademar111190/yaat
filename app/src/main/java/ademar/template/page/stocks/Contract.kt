@@ -16,4 +16,26 @@ interface Contract {
 
     }
 
+    data class State(
+        val symbols: List<String>,
+    )
+
+    sealed class Model {
+
+        object Loading : Model()
+
+        data class Error(
+            val message: String,
+        ) : Model()
+
+        data class Empty(
+            val message: String,
+        ) : Model()
+
+        data class DataModel(
+            val symbols: List<String>,
+        ) : Model()
+
+    }
+
 }

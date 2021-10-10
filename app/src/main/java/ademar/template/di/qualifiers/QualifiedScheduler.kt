@@ -8,5 +8,6 @@ annotation class QualifiedScheduler(val option: QualifiedSchedulerOption)
 
 enum class QualifiedSchedulerOption {
     IO,
+    COMPUTATION,
     MAIN_THREAD,
 }

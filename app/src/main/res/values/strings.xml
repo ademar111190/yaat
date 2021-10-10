@@ -3,4 +3,5 @@
     <string name="page_title_dashboard">Dashboard</string>
     <string name="page_title_settings">Settings</string>
     <string name="page_title_stocks">Stocks</string>
+    <string name="stocks_empty">No Stocks ticker add yet, click on add button to add your first ticker.</string>
 </resources>

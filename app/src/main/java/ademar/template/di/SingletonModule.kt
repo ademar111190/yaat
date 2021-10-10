@@ -1,8 +1,7 @@
 package ademar.template.di
 
 import ademar.template.di.qualifiers.QualifiedScheduler
-import ademar.template.di.qualifiers.QualifiedSchedulerOption.IO
-import ademar.template.di.qualifiers.QualifiedSchedulerOption.MAIN_THREAD
+import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,6 +23,9 @@ object SingletonModule {
 
     @[Provides Singleton QualifiedScheduler(IO)]
     fun providesSchedulerIo(): Scheduler = Schedulers.io()
+
+    @[Provides Singleton QualifiedScheduler(COMPUTATION)]
+    fun providesSchedulerComputation(): Scheduler = Schedulers.computation()
 
     @[Provides Singleton QualifiedScheduler(MAIN_THREAD)]
     fun providesSchedulerMainThread(): Scheduler = AndroidSchedulers.mainThread()

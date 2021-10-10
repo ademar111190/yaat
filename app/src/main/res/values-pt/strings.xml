@@ -3,4 +3,5 @@
     <string name="page_title_dashboard">Controlador</string>
     <string name="page_title_settings">Configurações</string>
     <string name="page_title_stocks">Ações</string>
+    <string name="stocks_empty">Nenhuma ação adicionada, toque no botão de adicionar e adicione uma.</string>
 </resources>
