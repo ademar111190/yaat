@@ -14,6 +14,7 @@ import javax.inject.Inject
 @FragmentScoped
 class StockInteractor @Inject constructor(
     private val db: AppDatabase,
+    private val stockNavigator: StockNavigator,
     private val subscriptions: CompositeDisposable,
     @QualifiedScheduler(IO) private val ioScheduler: Scheduler,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
@@ -40,6 +41,7 @@ class StockInteractor @Inject constructor(
         command: Contract.Command,
     ): Observable<Contract.State> = when (command) {
         is Contract.Command.Initial -> initial()
+        is Contract.Command.Search -> search()
     }
 
     private fun initial(): Observable<Contract.State> {
@@ -58,6 +60,11 @@ class StockInteractor @Inject constructor(
                 Contract.State(symbols)
             }
             .toObservable()
+    }
+
+    private fun search(): Observable<Contract.State> {
+        stockNavigator.openSearch()
+        return Observable.empty()
     }
 
 }

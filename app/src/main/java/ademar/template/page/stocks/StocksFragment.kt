@@ -11,11 +11,12 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.subjects.BehaviorSubject.createDefault
+import io.reactivex.rxjava3.subjects.PublishSubject.create
 import io.reactivex.rxjava3.subjects.Subject
 import timber.log.Timber
 import javax.inject.Inject
@@ -29,7 +30,7 @@ class StocksFragment : Fragment(), Reselectable, Contract.View {
 
     private val adapter = StockAdapter();
 
-    override val output: Subject<Contract.Command> = createDefault(Initial)
+    override val output: Subject<Contract.Command> = create()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.page_stocks, container, false)
@@ -37,6 +38,14 @@ class StocksFragment : Fragment(), Reselectable, Contract.View {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        view.findViewById<Toolbar>(R.id.toolbar).setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.stock_menu_search -> {
+                    output.onNext(Contract.Command.Search)
+                }
+                else -> null
+            } != null
+        }
         view.findViewById<RecyclerView>(R.id.list).adapter = adapter
     }
 
@@ -45,10 +54,11 @@ class StocksFragment : Fragment(), Reselectable, Contract.View {
         presenter.bind()
         interactor.bind(this)
         subscriptions.add(presenter.output.subscribe(::render, Timber::e))
+        output.onNext(Initial)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onStop() {
+        super.onStop()
         presenter.unbind()
         interactor.unbind()
         subscriptions.clear()

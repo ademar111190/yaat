@@ -14,6 +14,8 @@ interface Contract {
 
         object Initial : Command()
 
+        object Search : Command()
+
     }
 
     data class State(

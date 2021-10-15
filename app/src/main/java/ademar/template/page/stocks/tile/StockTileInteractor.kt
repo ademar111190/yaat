@@ -74,6 +74,10 @@ class StockTileInteractor @Inject constructor(
                         Contract.State.DataState(symbol, value)
                     }
                     .toObservable()
+                    .onErrorResumeNext { error ->
+                        output.onError(error)
+                        Observable.empty()
+                    }
             }
     }
 

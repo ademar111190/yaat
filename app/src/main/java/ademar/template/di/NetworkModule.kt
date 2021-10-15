@@ -11,7 +11,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import okhttp3.logging.HttpLoggingInterceptor.Level.HEADERS
+import okhttp3.logging.HttpLoggingInterceptor.Level.BODY
 import okhttp3.logging.HttpLoggingInterceptor.Level.NONE
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
@@ -30,7 +30,7 @@ object NetworkModule {
 
     @[Provides Singleton]
     fun providesHttpLoggingInterceptor() = HttpLoggingInterceptor()
-        .setLevel(if (BuildConfig.DEBUG) HEADERS else NONE)
+        .setLevel(if (BuildConfig.DEBUG) BODY else NONE)
 
     @[Provides Singleton]
     fun providesOkHttpClient(
