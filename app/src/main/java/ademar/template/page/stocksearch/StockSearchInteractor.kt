@@ -1,5 +1,6 @@
 package ademar.template.page.stocksearch
 
+import ademar.template.arch.ArchErrorMapper
 import ademar.template.di.qualifiers.QualifiedScheduler
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
 import ademar.template.network.api.AlphaVantageService
@@ -9,6 +10,7 @@ import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject.create
 import io.reactivex.rxjava3.subjects.Subject
+import timber.log.Timber
 import javax.inject.Inject
 
 @ActivityScoped
@@ -18,7 +20,7 @@ class StockSearchInteractor @Inject constructor(
     @QualifiedScheduler(IO) private val ioScheduler: Scheduler,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
     @QualifiedScheduler(MAIN_THREAD) private val mainThreadScheduler: Scheduler,
-) {
+) : ArchErrorMapper<Contract.State> by ArchErrorMapper.Impl(Contract.State::ErrorState) {
 
     val output: Subject<Contract.State> = create()
 
@@ -28,7 +30,8 @@ class StockSearchInteractor @Inject constructor(
                 .subscribeOn(computationScheduler)
                 .observeOn(mainThreadScheduler)
                 .flatMap(::map)
-                .subscribe(output::onNext, ::mapError)
+                .onErrorResumeNext(::mapError)
+                .subscribe(output::onNext, Timber::e)
         )
     }
 
@@ -74,14 +77,6 @@ class StockSearchInteractor @Inject constructor(
                 )
             }
             .toObservable()
-    }
-
-    private fun mapError(error: Throwable) {
-        output.onNext(
-            Contract.State.ErrorState(
-                error.localizedMessage ?: error.message ?: "$error"
-            )
-        )
     }
 
 }

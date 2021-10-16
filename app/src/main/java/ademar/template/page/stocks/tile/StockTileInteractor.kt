@@ -1,5 +1,6 @@
 package ademar.template.page.stocks.tile
 
+import ademar.template.arch.ArchErrorMapper
 import ademar.template.db.AppDatabase
 import ademar.template.db.TickerEntity
 import ademar.template.di.qualifiers.QualifiedScheduler
@@ -8,11 +9,13 @@ import ademar.template.network.api.AlphaVantageService
 import ademar.template.network.payload.TimeSeriesDailyResponse
 import dagger.hilt.android.scopes.ViewScoped
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Observable.empty
 import io.reactivex.rxjava3.core.Observable.just
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject.createDefault
 import io.reactivex.rxjava3.subjects.Subject
+import timber.log.Timber
 import javax.inject.Inject
 
 @ViewScoped
@@ -23,9 +26,10 @@ class StockTileInteractor @Inject constructor(
     @QualifiedScheduler(IO) private val ioScheduler: Scheduler,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
     @QualifiedScheduler(MAIN_THREAD) private val mainThreadScheduler: Scheduler,
-) {
+) : ArchErrorMapper<Contract.State> by ArchErrorMapper.Impl(Contract.State::ErrorState) {
 
     val output: Subject<Contract.State> = createDefault(Contract.State.NoSymbol)
+
     private var lastSymbol = ""
 
     fun bind(view: Contract.View) {
@@ -34,7 +38,8 @@ class StockTileInteractor @Inject constructor(
                 .subscribeOn(computationScheduler)
                 .observeOn(mainThreadScheduler)
                 .flatMap(::map)
-                .subscribe(output::onNext, ::mapError)
+                .onErrorResumeNext(::mapError)
+                .subscribe(output::onNext, Timber::e)
         )
     }
 
@@ -64,52 +69,32 @@ class StockTileInteractor @Inject constructor(
                     ticker.value,
                 )
             }
-            .doOnSuccess { state ->
+            .flatMapObservable { state ->
                 output.onNext(state)
-                subscriptions.add(
-                    service.timeSeriesDaily(symbol = symbol)
-                        .subscribeOn(ioScheduler)
-                        .observeOn(mainThreadScheduler)
-                        .subscribe(::listenResponse, ::mapError)
-                )
+                service.timeSeriesDaily(symbol = symbol)
+                    .subscribeOn(ioScheduler)
+                    .observeOn(mainThreadScheduler)
+                    .flatMapObservable(::mapResponse)
+                    .onErrorResumeNext(::mapError)
             }
-            .toObservable()
+            .onErrorResumeNext(::mapError)
     }
 
-    private fun listenResponse(response: TimeSeriesDailyResponse) {
+    private fun mapResponse(response: TimeSeriesDailyResponse): Observable<Contract.State> {
         if (response.note != null) {
-            mapError(Exception(response.note))
-            return
+            // api usage exceed (5 calls per minute and 500 calls per day), stop the update temporarily
+            return empty()
         }
 
-        val symbol = response.metaData?.symbol
-        if (symbol == null) {
-            mapError(Exception("No symbol found"))
-            return
-        }
-
+        val symbol = response.metaData?.symbol ?: return mapError(Exception("No symbol found"))
         val value = response.timeSeries?.series?.values?.first()?.close?.toDouble()
-        if (value == null) {
-            mapError(Exception("No value found"))
-            return
-        }
+            ?: return mapError(Exception("No value found"))
 
-        subscriptions.add(
-            db.tickerDao()
-                .insert(TickerEntity(symbol = symbol, value = value))
-                .subscribeOn(ioScheduler)
-                .observeOn(mainThreadScheduler).subscribe({
-                    output.onNext(Contract.State.DataState(symbol, value))
-                }, ::mapError),
-        )
-    }
-
-    private fun mapError(error: Throwable) {
-        output.onNext(
-            Contract.State.ErrorState(
-                error.localizedMessage ?: error.message ?: "$error"
-            )
-        )
+        return db.tickerDao()
+            .insert(TickerEntity(symbol = symbol, value = value))
+            .subscribeOn(ioScheduler)
+            .observeOn(mainThreadScheduler)
+            .andThen(just(Contract.State.DataState(symbol, value)))
     }
 
 }

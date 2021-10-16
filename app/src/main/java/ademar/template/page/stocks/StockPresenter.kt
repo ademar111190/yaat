@@ -1,6 +1,7 @@
 package ademar.template.page.stocks
 
 import ademar.template.R
+import ademar.template.arch.ArchErrorMapper
 import ademar.template.di.qualifiers.QualifiedScheduler
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.COMPUTATION
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.MAIN_THREAD
@@ -11,6 +12,7 @@ import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject.createDefault
 import io.reactivex.rxjava3.subjects.Subject
+import timber.log.Timber
 import javax.inject.Inject
 
 @FragmentScoped
@@ -20,7 +22,7 @@ class StockPresenter @Inject constructor(
     private val subscriptions: CompositeDisposable,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
     @QualifiedScheduler(MAIN_THREAD) private val mainThreadScheduler: Scheduler,
-) {
+) : ArchErrorMapper<Contract.Model> by ArchErrorMapper.Impl(Contract.Model::Error) {
 
     val output: Subject<Contract.Model> = createDefault(Contract.Model.Loading)
 
@@ -30,7 +32,8 @@ class StockPresenter @Inject constructor(
                 .subscribeOn(computationScheduler)
                 .observeOn(mainThreadScheduler)
                 .map(::map)
-                .subscribe(output::onNext, ::mapError)
+                .onErrorResumeNext(::mapError)
+                .subscribe(output::onNext, Timber::e)
         )
     }
 
@@ -56,10 +59,6 @@ class StockPresenter @Inject constructor(
                 state.message,
             )
         }
-    }
-
-    private fun mapError(error: Throwable) {
-        output.onNext(Contract.Model.Error(error.localizedMessage ?: error.message ?: "Unknown error"))
     }
 
 }
