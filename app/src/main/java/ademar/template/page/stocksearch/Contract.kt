@@ -28,7 +28,9 @@ interface Contract {
 
         object NoSearch : State()
 
-        data class SearchState(
+        object Searching : State()
+
+        data class SearchResult(
             val symbols: List<Item>,
         ) : State()
 

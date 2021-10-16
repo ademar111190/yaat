@@ -7,6 +7,7 @@ import com.squareup.moshi.JsonClass
 data class TimeSeriesDailyResponse(
     @Json(name = "Meta Data") val metaData: MetaData?,
     @Json(name = "Time Series (Daily)") val timeSeries: TimeSeries?,
+    @Json(name = "Note") val note: String?,
 )
 
 @JsonClass(generateAdapter = true)

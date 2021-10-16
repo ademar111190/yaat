@@ -1,6 +1,7 @@
 package ademar.template.network.api
 
 import ademar.template.BuildConfig
+import ademar.template.network.payload.SearchResponse
 import ademar.template.network.payload.TimeSeriesDailyResponse
 import io.reactivex.rxjava3.core.Single
 import retrofit2.http.GET
@@ -20,6 +21,6 @@ interface AlphaVantageService {
         @Query("function") function: String = "SYMBOL_SEARCH",
         @Query("apikey") apikey: String = BuildConfig.ALPHA_VANTAGE_KEY,
         @Query("keywords") keywords: String,
-    ): Single<TimeSeriesDailyResponse>
+    ): Single<SearchResponse>
 
 }

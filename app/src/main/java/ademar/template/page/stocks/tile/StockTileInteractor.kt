@@ -25,6 +25,7 @@ class StockTileInteractor @Inject constructor(
 ) {
 
     val output: Subject<Contract.State> = createDefault(Contract.State.NoSymbol)
+    private var lastQuery = ""
 
     fun bind(view: Contract.View) {
         subscriptions.add(
@@ -44,14 +45,19 @@ class StockTileInteractor @Inject constructor(
         command: Contract.Command,
     ): Observable<Contract.State> = when (command) {
         is Contract.Command.Initial -> just(Contract.State.NoSymbol)
-        is Contract.Command.Bind -> bind(command)
+        is Contract.Command.Retry -> {
+            output.onNext(Contract.State.NoSymbol)
+            search(lastQuery)
+        }
+        is Contract.Command.Bind -> search(command.symbol)
     }
 
-    private fun bind(command: Contract.Command.Bind): Observable<Contract.State> {
-        return db.tickerDao().getBySymbol(command.symbol)
+    private fun search(query: String): Observable<Contract.State> {
+        lastQuery = query
+        return db.tickerDao().getBySymbol(query)
             .subscribeOn(ioScheduler)
             .observeOn(mainThreadScheduler)
-            .map { ticker ->
+            .map<Contract.State> { ticker ->
                 Contract.State.DataState(
                     ticker.symbol,
                     ticker.value,
@@ -59,12 +65,11 @@ class StockTileInteractor @Inject constructor(
             }
             .doOnSuccess { state ->
                 output.onNext(state)
-            }
-            .flatMapObservable {
-                service.timeSeriesDaily(symbol = command.symbol)
+                subscriptions.add(service.timeSeriesDaily(symbol = query)
                     .subscribeOn(ioScheduler)
                     .observeOn(mainThreadScheduler)
                     .map<Contract.State> { response ->
+                        if (response.note != null) throw Exception(response.note)
                         val symbol = response.metaData?.symbol ?: throw Exception("No symbol found")
                         val value = response.timeSeries?.series?.values?.first()
                             ?.close?.toDouble() ?: throw Exception("No value found")
@@ -73,12 +78,9 @@ class StockTileInteractor @Inject constructor(
 
                         Contract.State.DataState(symbol, value)
                     }
-                    .toObservable()
-                    .onErrorResumeNext { error ->
-                        output.onError(error)
-                        Observable.empty()
-                    }
+                    .subscribe(output::onNext, output::onError))
             }
+            .toObservable()
     }
 
 }

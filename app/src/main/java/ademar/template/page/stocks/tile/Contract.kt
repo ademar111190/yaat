@@ -14,6 +14,8 @@ interface Contract {
 
         object Initial : Command()
 
+        object Retry : Command()
+
         data class Bind(
             val symbol: String,
         ) : Command()

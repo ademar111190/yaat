@@ -33,6 +33,9 @@ class StockTileView @JvmOverloads constructor(
     init {
         LayoutInflater.from(context).inflate(R.layout.tile_stock, this, true)
         layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+        findViewById<Button>(R.id.retry).setOnClickListener {
+            output.onNext(Contract.Command.Retry)
+        }
     }
 
     fun bind(symbol: String) {

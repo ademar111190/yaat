@@ -1,20 +1,19 @@
 package ademar.template.page.stocksearch
 
-import ademar.template.db.AppDatabase
 import ademar.template.di.qualifiers.QualifiedScheduler
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
+import ademar.template.network.api.AlphaVantageService
 import dagger.hilt.android.scopes.ActivityScoped
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject.create
 import io.reactivex.rxjava3.subjects.Subject
-import timber.log.Timber
 import javax.inject.Inject
 
 @ActivityScoped
 class StockSearchInteractor @Inject constructor(
-    private val db: AppDatabase,
+    private val service: AlphaVantageService,
     private val subscriptions: CompositeDisposable,
     @QualifiedScheduler(IO) private val ioScheduler: Scheduler,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
@@ -46,15 +45,35 @@ class StockSearchInteractor @Inject constructor(
     }
 
     private fun initial(): Observable<Contract.State> {
-        Timber.d(">> Initial")
         return Observable.just(Contract.State.NoSearch)
     }
 
     private fun search(
         term: String,
     ): Observable<Contract.State> {
-        Timber.d(">> Search $term")
-        return Observable.empty()
+        if (term.isEmpty()) {
+            return Observable.just(Contract.State.NoSearch)
+        }
+        output.onNext(Contract.State.Searching)
+        return service.search(keywords = term)
+            .subscribeOn(ioScheduler)
+            .observeOn(mainThreadScheduler)
+            .map<Contract.State> { response ->
+                Contract.State.SearchResult(
+                    response.bestMatches?.mapNotNull {
+                        val symbol = it?.symbol
+                        val name = it?.name
+                        val type = it?.type
+                        if (symbol != null &&
+                            name != null &&
+                            type != null
+                        ) {
+                            Contract.Item(symbol, name, type)
+                        } else null
+                    } ?: emptyList(),
+                )
+            }
+            .toObservable()
     }
 
 }

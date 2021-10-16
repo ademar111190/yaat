@@ -28,7 +28,7 @@ class StocksFragment : Fragment(), Reselectable, Contract.View {
     @Inject lateinit var presenter: StockPresenter
     @Inject lateinit var interactor: StockInteractor
 
-    private val adapter = StockAdapter();
+    private val adapter = StockAdapter()
 
     override val output: Subject<Contract.Command> = create()
 
