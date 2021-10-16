@@ -1,7 +1,6 @@
 package ademar.template.page.stocks
 
 import ademar.template.R
-import ademar.template.page.stocks.Contract.Command.Initial
 import ademar.template.widget.Reselectable
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -16,7 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.subjects.PublishSubject.create
+import io.reactivex.rxjava3.subjects.BehaviorSubject.create
 import io.reactivex.rxjava3.subjects.Subject
 import timber.log.Timber
 import javax.inject.Inject
@@ -42,6 +41,7 @@ class StocksFragment : Fragment(), Reselectable, Contract.View {
             when (it.itemId) {
                 R.id.stock_menu_search -> {
                     output.onNext(Contract.Command.Search)
+                    output.onNext(Contract.Command.Initial)
                 }
                 else -> null
             } != null
@@ -49,16 +49,16 @@ class StocksFragment : Fragment(), Reselectable, Contract.View {
         view.findViewById<RecyclerView>(R.id.list).adapter = adapter
     }
 
-    override fun onStart() {
-        super.onStart()
+    override fun onResume() {
+        super.onResume()
         presenter.bind()
         interactor.bind(this)
         subscriptions.add(presenter.output.subscribe(::render, Timber::e))
-        output.onNext(Initial)
+        output.onNext(Contract.Command.Initial)
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onPause() {
+        super.onPause()
         presenter.unbind()
         interactor.unbind()
         subscriptions.clear()

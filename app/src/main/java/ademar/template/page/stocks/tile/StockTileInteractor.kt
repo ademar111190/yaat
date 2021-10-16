@@ -5,6 +5,7 @@ import ademar.template.db.TickerEntity
 import ademar.template.di.qualifiers.QualifiedScheduler
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
 import ademar.template.network.api.AlphaVantageService
+import ademar.template.network.payload.TimeSeriesDailyResponse
 import dagger.hilt.android.scopes.ViewScoped
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Observable.just
@@ -25,7 +26,7 @@ class StockTileInteractor @Inject constructor(
 ) {
 
     val output: Subject<Contract.State> = createDefault(Contract.State.NoSymbol)
-    private var lastQuery = ""
+    private var lastSymbol = ""
 
     fun bind(view: Contract.View) {
         subscriptions.add(
@@ -47,14 +48,14 @@ class StockTileInteractor @Inject constructor(
         is Contract.Command.Initial -> just(Contract.State.NoSymbol)
         is Contract.Command.Retry -> {
             output.onNext(Contract.State.NoSymbol)
-            search(lastQuery)
+            search(lastSymbol)
         }
         is Contract.Command.Bind -> search(command.symbol)
     }
 
-    private fun search(query: String): Observable<Contract.State> {
-        lastQuery = query
-        return db.tickerDao().getBySymbol(query)
+    private fun search(symbol: String): Observable<Contract.State> {
+        lastSymbol = symbol
+        return db.tickerDao().getBySymbol(symbol)
             .subscribeOn(ioScheduler)
             .observeOn(mainThreadScheduler)
             .map<Contract.State> { ticker ->
@@ -65,22 +66,42 @@ class StockTileInteractor @Inject constructor(
             }
             .doOnSuccess { state ->
                 output.onNext(state)
-                subscriptions.add(service.timeSeriesDaily(symbol = query)
-                    .subscribeOn(ioScheduler)
-                    .observeOn(mainThreadScheduler)
-                    .map<Contract.State> { response ->
-                        if (response.note != null) throw Exception(response.note)
-                        val symbol = response.metaData?.symbol ?: throw Exception("No symbol found")
-                        val value = response.timeSeries?.series?.values?.first()
-                            ?.close?.toDouble() ?: throw Exception("No value found")
-
-                        db.tickerDao().insert(TickerEntity(symbol = symbol, value = value))
-
-                        Contract.State.DataState(symbol, value)
-                    }
-                    .subscribe(output::onNext, output::onError))
+                subscriptions.add(
+                    service.timeSeriesDaily(symbol = symbol)
+                        .subscribeOn(ioScheduler)
+                        .observeOn(mainThreadScheduler)
+                        .subscribe(::listenResponse, output::onError)
+                )
             }
             .toObservable()
+    }
+
+    private fun listenResponse(response: TimeSeriesDailyResponse) {
+        if (response.note != null) {
+            output.onError(Exception(response.note))
+            return
+        }
+
+        val symbol = response.metaData?.symbol
+        if (symbol == null) {
+            output.onError(Exception("No symbol found"))
+            return
+        }
+
+        val value = response.timeSeries?.series?.values?.first()?.close?.toDouble()
+        if (value == null) {
+            output.onError(Exception("No value found"))
+            return
+        }
+
+        subscriptions.add(
+            db.tickerDao()
+                .insert(TickerEntity(symbol = symbol, value = value))
+                .subscribeOn(ioScheduler)
+                .observeOn(mainThreadScheduler).subscribe({
+                    output.onNext(Contract.State.DataState(symbol, value))
+                }, output::onError),
+        )
     }
 
 }
