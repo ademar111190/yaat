@@ -15,4 +15,11 @@ interface AlphaVantageService {
         @Query("symbol") symbol: String,
     ): Single<TimeSeriesDailyResponse>
 
+    @GET("query")
+    fun search(
+        @Query("function") function: String = "SYMBOL_SEARCH",
+        @Query("apikey") apikey: String = BuildConfig.ALPHA_VANTAGE_KEY,
+        @Query("keywords") keywords: String,
+    ): Single<TimeSeriesDailyResponse>
+
 }

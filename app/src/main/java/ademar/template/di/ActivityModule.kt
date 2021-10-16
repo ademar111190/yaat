@@ -1,11 +1,17 @@
 package ademar.template.di
 
+import ademar.template.di.ActivityModule.Declarations
+import ademar.template.page.home.HomeActivity
+import ademar.template.page.stocksearch.StockSearchActivity
 import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityComponent
+import ademar.template.page.home.Contract as HomeContract
+import ademar.template.page.stocksearch.Contract as StockSearchContract
 
 /**
  * SingletonComponent @Singleton
@@ -14,11 +20,21 @@ import dagger.hilt.android.components.ActivityComponent
  * FragmentComponent @FragmentScoped // ViewComponent @ViewScoped
  * ViewWithFragmentComponent @ViewScoped
  */
-@[Module InstallIn(ActivityComponent::class)]
+@Module(includes = [Declarations::class])
+@InstallIn(ActivityComponent::class)
 object ActivityModule {
 
     @Provides fun providesCompatActivity(impl: Activity) = impl as AppCompatActivity
 
     @Provides fun providesFragmentManager(app: AppCompatActivity) = app.supportFragmentManager
+
+    @[Module InstallIn(ActivityComponent::class)]
+    interface Declarations {
+
+        @Binds fun bindHomeView(impl: HomeActivity): HomeContract.View
+
+        @Binds fun bindSettingsView(impl: StockSearchActivity): StockSearchContract.View
+
+    }
 
 }

@@ -6,4 +6,8 @@
     <string name="stocks_empty">No Stocks ticker add yet, click on add button to add your first ticker.</string>
     <string name="stocks_tile_retry">Retry</string>
     <string name="stocks_search">Search</string>
+    <string name="stocks_search_clear">Clear</string>
+    <string name="stocks_search_voice">Voice search</string>
+    <string name="stocks_search_empty">Write your ticker on the field above.</string>
+    <string name="stocks_search_not_found">No tickers found.</string>
 </resources>
