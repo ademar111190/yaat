@@ -28,7 +28,7 @@ class StockSearchInteractor @Inject constructor(
                 .subscribeOn(computationScheduler)
                 .observeOn(mainThreadScheduler)
                 .flatMap(::map)
-                .subscribe(output::onNext, output::onError)
+                .subscribe(output::onNext, ::mapError)
         )
     }
 
@@ -74,6 +74,14 @@ class StockSearchInteractor @Inject constructor(
                 )
             }
             .toObservable()
+    }
+
+    private fun mapError(error: Throwable) {
+        output.onNext(
+            Contract.State.ErrorState(
+                error.localizedMessage ?: error.message ?: "$error"
+            )
+        )
     }
 
 }

@@ -44,9 +44,9 @@ class StockTileView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        subscriptions.add(presenter.output.subscribe(::render, Timber::e))
         presenter.bind()
         interactor.bind(this)
-        subscriptions.add(presenter.output.subscribe(::render, Timber::e))
     }
 
     override fun onDetachedFromWindow() {

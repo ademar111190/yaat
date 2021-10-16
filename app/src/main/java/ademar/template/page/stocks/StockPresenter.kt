@@ -39,14 +39,21 @@ class StockPresenter @Inject constructor(
     }
 
     private fun map(state: Contract.State): Contract.Model {
-        val symbols = state.symbols
-        return if (symbols.isEmpty()) {
-            Contract.Model.Empty(
-                message = context.getString(R.string.stocks_empty),
-            )
-        } else {
-            Contract.Model.DataModel(
-                items = state.symbols,
+        return when (state) {
+            is Contract.State.DataState -> {
+                val symbols = state.symbols
+                if (symbols.isEmpty()) {
+                    Contract.Model.Empty(
+                        message = context.getString(R.string.stocks_empty),
+                    )
+                } else {
+                    Contract.Model.DataModel(
+                        items = state.symbols,
+                    )
+                }
+            }
+            is Contract.State.ErrorState -> Contract.Model.Error(
+                state.message,
             )
         }
     }

@@ -58,6 +58,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -65,7 +66,8 @@
             app:layout_constraintHorizontal_chainStyle="spread_inside"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="An error" />
+            tools:text="An error with a big message and big much bug"
+            tools:visibility="gone" />
 
         <Button
             android:id="@+id/retry"
@@ -77,7 +79,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/error"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="@string/stocks_tile_retry" />
+            tools:text="@string/stocks_tile_retry"
+            tools:visibility="gone" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

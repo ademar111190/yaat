@@ -44,6 +44,9 @@ class StockSearchPresenter @Inject constructor(
                 context.getString(R.string.stocks_search_empty),
             )
             is Contract.State.Searching -> Contract.Model.Loading
+            is Contract.State.ErrorState -> Contract.Model.Error(
+                state.message,
+            )
             is Contract.State.SearchResult -> {
                 if (state.symbols.isEmpty()) {
                     Contract.Model.Empty(

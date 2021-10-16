@@ -39,18 +39,7 @@ class StockSearchActivity : AppCompatActivity(), Contract.View {
         val searchField = findViewById<EditText>(R.id.search_field)
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
 
-        searchField.addTextChangedListener(AfterTextChanged { term ->
-            val clear = toolbar.menu.findItem(R.id.stock_search_menu_clear)
-            val voice = toolbar.menu.findItem(R.id.stock_search_menu_voice)
-            if (term.isEmpty()) {
-                clear.isVisible = false
-                voice.isVisible = true
-            } else {
-                clear.isVisible = true
-                voice.isVisible = false
-            }
-            termEmitter.onNext(term)
-        })
+        searchField.addTextChangedListener(AfterTextChanged(::onSearchChanged))
 
         toolbar.setOnMenuItemClickListener {
             when (it.itemId) {
@@ -69,7 +58,10 @@ class StockSearchActivity : AppCompatActivity(), Contract.View {
         toolbar.setNavigationOnClickListener { finish() }
 
         findViewById<RecyclerView>(R.id.list).adapter = adapter
+    }
 
+    override fun onResume() {
+        super.onResume()
         subscriptions.addAll(
             termEmitter
                 .throttleWithTimeout(1000, MILLISECONDS)
@@ -80,10 +72,11 @@ class StockSearchActivity : AppCompatActivity(), Contract.View {
         presenter.bind()
         interactor.bind(this)
         output.onNext(Contract.Command.Initial)
+        onSearchChanged(findViewById<EditText>(R.id.search_field).text.toString())
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onPause() {
+        super.onPause()
         presenter.unbind()
         interactor.unbind()
         subscriptions.clear()
@@ -101,6 +94,20 @@ class StockSearchActivity : AppCompatActivity(), Contract.View {
                 output.onNext(Contract.Command.VoiceSearch(term))
             }
         }
+    }
+
+    private fun onSearchChanged(term: String) {
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        val clear = toolbar.menu.findItem(R.id.stock_search_menu_clear)
+        val voice = toolbar.menu.findItem(R.id.stock_search_menu_voice)
+        if (term.isEmpty()) {
+            clear.isVisible = false
+            voice.isVisible = true
+        } else {
+            clear.isVisible = true
+            voice.isVisible = false
+        }
+        termEmitter.onNext(term)
     }
 
     private fun render(model: Contract.Model) {

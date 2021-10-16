@@ -34,7 +34,7 @@ class StockTileInteractor @Inject constructor(
                 .subscribeOn(computationScheduler)
                 .observeOn(mainThreadScheduler)
                 .flatMap(::map)
-                .subscribe(output::onNext, output::onError)
+                .subscribe(output::onNext, ::mapError)
         )
     }
 
@@ -70,7 +70,7 @@ class StockTileInteractor @Inject constructor(
                     service.timeSeriesDaily(symbol = symbol)
                         .subscribeOn(ioScheduler)
                         .observeOn(mainThreadScheduler)
-                        .subscribe(::listenResponse, output::onError)
+                        .subscribe(::listenResponse, ::mapError)
                 )
             }
             .toObservable()
@@ -78,19 +78,19 @@ class StockTileInteractor @Inject constructor(
 
     private fun listenResponse(response: TimeSeriesDailyResponse) {
         if (response.note != null) {
-            output.onError(Exception(response.note))
+            mapError(Exception(response.note))
             return
         }
 
         val symbol = response.metaData?.symbol
         if (symbol == null) {
-            output.onError(Exception("No symbol found"))
+            mapError(Exception("No symbol found"))
             return
         }
 
         val value = response.timeSeries?.series?.values?.first()?.close?.toDouble()
         if (value == null) {
-            output.onError(Exception("No value found"))
+            mapError(Exception("No value found"))
             return
         }
 
@@ -100,7 +100,15 @@ class StockTileInteractor @Inject constructor(
                 .subscribeOn(ioScheduler)
                 .observeOn(mainThreadScheduler).subscribe({
                     output.onNext(Contract.State.DataState(symbol, value))
-                }, output::onError),
+                }, ::mapError),
+        )
+    }
+
+    private fun mapError(error: Throwable) {
+        output.onNext(
+            Contract.State.ErrorState(
+                error.localizedMessage ?: error.message ?: "$error"
+            )
         )
     }
 

@@ -18,9 +18,17 @@ interface Contract {
 
     }
 
-    data class State(
-        val symbols: List<Item>,
-    )
+    sealed class State {
+
+        data class DataState(
+            val symbols: List<Item>,
+        ) : State()
+
+        data class ErrorState(
+            val message: String,
+        ) : State()
+
+    }
 
     sealed class Model {
 

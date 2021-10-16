@@ -42,6 +42,10 @@ class StockTilePresenter @Inject constructor(
         return when (state) {
             is Contract.State.InquiryState -> Contract.Model.Loading
             is Contract.State.NoSymbol -> Contract.Model.Loading
+            is Contract.State.ErrorState -> Contract.Model.Error(
+                state.message,
+                context.getString(R.string.stocks_tile_retry),
+            )
             is Contract.State.DataState -> Contract.Model.DataModel(
                 symbol = state.symbol,
                 value = state.value.toString(),

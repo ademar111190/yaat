@@ -29,7 +29,7 @@ class StockInteractor @Inject constructor(
                 .subscribeOn(computationScheduler)
                 .observeOn(mainThreadScheduler)
                 .flatMap(::map)
-                .subscribe(output::onNext, output::onError)
+                .subscribe(output::onNext, ::mapError)
         )
     }
 
@@ -56,8 +56,8 @@ class StockInteractor @Inject constructor(
                     )
                 }
             }
-            .map { symbols ->
-                Contract.State(symbols)
+            .map<Contract.State> { symbols ->
+                Contract.State.DataState(symbols)
             }
             .toObservable()
     }
@@ -65,6 +65,14 @@ class StockInteractor @Inject constructor(
     private fun search(): Observable<Contract.State> {
         stockNavigator.openSearch()
         return Observable.empty()
+    }
+
+    private fun mapError(error: Throwable) {
+        output.onNext(
+            Contract.State.ErrorState(
+                error.localizedMessage ?: error.message ?: "$error"
+            )
+        )
     }
 
 }
