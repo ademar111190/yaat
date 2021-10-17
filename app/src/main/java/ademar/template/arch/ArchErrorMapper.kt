@@ -2,15 +2,15 @@ package ademar.template.arch
 
 import io.reactivex.rxjava3.core.Observable
 
-interface ArchErrorMapper<T> {
+interface ArchErrorMapper<State : Any> {
 
-    fun mapError(error: Throwable): Observable<T>
+    fun mapError(error: Throwable): Observable<State>
 
-    class Impl<T>(
-        private val stateFactory: (String) -> T,
-    ) : ArchErrorMapper<T> {
+    class Impl<State : Any>(
+        private val stateFactory: (String) -> State,
+    ) : ArchErrorMapper<State> {
 
-        override fun mapError(error: Throwable): Observable<T> {
+        override fun mapError(error: Throwable): Observable<State> {
             return Observable.just(
                 stateFactory(
                     error.localizedMessage ?: error.message ?: "$error",

@@ -1,6 +1,7 @@
 package ademar.template.page.stocks.tile
 
 import ademar.template.R
+import ademar.template.arch.ArchBinder
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -15,7 +16,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject.createDefault
 import io.reactivex.rxjava3.subjects.Subject
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -24,9 +24,10 @@ class StockTileView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
 ) : FrameLayout(context, attrs), Contract.View {
 
-    @Inject lateinit var subscriptions: CompositeDisposable
+    @Inject override lateinit var subscriptions: CompositeDisposable
     @Inject lateinit var presenter: StockTilePresenter
     @Inject lateinit var interactor: StockTileInteractor
+    @Inject lateinit var archBinder: ArchBinder
 
     override val output: Subject<Contract.Command> = createDefault(Contract.Command.Initial)
 
@@ -36,27 +37,14 @@ class StockTileView @JvmOverloads constructor(
         findViewById<Button>(R.id.retry).setOnClickListener {
             output.onNext(Contract.Command.Retry)
         }
+        archBinder.bind(this, interactor, presenter)
     }
 
     fun bind(symbol: String) {
         output.onNext(Contract.Command.Bind(symbol))
     }
 
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-        subscriptions.add(presenter.output.subscribe(::render, Timber::e))
-        presenter.bind()
-        interactor.bind(this)
-    }
-
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        presenter.unbind()
-        interactor.unbind()
-        subscriptions.clear()
-    }
-
-    private fun render(model: Contract.Model) {
+    override fun render(model: Contract.Model) {
         val title = findViewById<TextView>(R.id.title)
         val value = findViewById<TextView>(R.id.value)
         val load = findViewById<ProgressBar>(R.id.load)

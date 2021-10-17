@@ -1,14 +1,10 @@
 package ademar.template.page.stocks.tile
 
-import io.reactivex.rxjava3.subjects.Subject
+import ademar.template.arch.ArchView
 
 interface Contract {
 
-    interface View {
-
-        val output: Subject<Command>
-
-    }
+    interface View : ArchView<Model, Command>
 
     sealed class Command {
 

@@ -1,12 +1,14 @@
 package ademar.template.page.stocks.tile
 
-import ademar.template.arch.ArchErrorMapper
+import ademar.template.arch.ArchInteractor
 import ademar.template.db.AppDatabase
 import ademar.template.db.TickerEntity
 import ademar.template.di.qualifiers.QualifiedScheduler
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
 import ademar.template.network.api.AlphaVantageService
 import ademar.template.network.payload.TimeSeriesDailyResponse
+import ademar.template.page.stocks.tile.Contract.Command
+import ademar.template.page.stocks.tile.Contract.State
 import dagger.hilt.android.scopes.ViewScoped
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Observable.empty
@@ -14,57 +16,44 @@ import io.reactivex.rxjava3.core.Observable.just
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject.createDefault
-import io.reactivex.rxjava3.subjects.Subject
-import timber.log.Timber
 import javax.inject.Inject
 
 @ViewScoped
 class StockTileInteractor @Inject constructor(
     private val service: AlphaVantageService,
     private val db: AppDatabase,
-    private val subscriptions: CompositeDisposable,
+    subscriptions: CompositeDisposable,
     @QualifiedScheduler(IO) private val ioScheduler: Scheduler,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
     @QualifiedScheduler(MAIN_THREAD) private val mainThreadScheduler: Scheduler,
-) : ArchErrorMapper<Contract.State> by ArchErrorMapper.Impl(Contract.State::ErrorState) {
-
-    val output: Subject<Contract.State> = createDefault(Contract.State.NoSymbol)
+) : ArchInteractor<Command, State>(
+    errorFactory = State::ErrorState,
+    subscriptions = subscriptions,
+    backgroundScheduler = computationScheduler,
+    foregroundScheduler = mainThreadScheduler,
+    output = createDefault(State.NoSymbol),
+) {
 
     private var lastSymbol = ""
 
-    fun bind(view: Contract.View) {
-        subscriptions.add(
-            view.output
-                .subscribeOn(computationScheduler)
-                .observeOn(mainThreadScheduler)
-                .flatMap(::map)
-                .onErrorResumeNext(::mapError)
-                .subscribe(output::onNext, Timber::e)
-        )
-    }
-
-    fun unbind() {
-        subscriptions.clear()
-    }
-
-    private fun map(
-        command: Contract.Command,
-    ): Observable<Contract.State> = when (command) {
-        is Contract.Command.Initial -> just(Contract.State.NoSymbol)
-        is Contract.Command.Retry -> {
-            output.onNext(Contract.State.NoSymbol)
+    override fun map(
+        command: Command,
+    ): Observable<State> = when (command) {
+        is Command.Initial -> just(State.NoSymbol)
+        is Command.Retry -> {
+            output.onNext(State.NoSymbol)
             search(lastSymbol)
         }
-        is Contract.Command.Bind -> search(command.symbol)
+        is Command.Bind -> search(command.symbol)
     }
 
-    private fun search(symbol: String): Observable<Contract.State> {
+    private fun search(symbol: String): Observable<State> {
         lastSymbol = symbol
         return db.tickerDao().getBySymbol(symbol)
             .subscribeOn(ioScheduler)
             .observeOn(mainThreadScheduler)
-            .map<Contract.State> { ticker ->
-                Contract.State.DataState(
+            .map<State> { ticker ->
+                State.DataState(
                     ticker.symbol,
                     ticker.value,
                 )
@@ -80,7 +69,7 @@ class StockTileInteractor @Inject constructor(
             .onErrorResumeNext(::mapError)
     }
 
-    private fun mapResponse(response: TimeSeriesDailyResponse): Observable<Contract.State> {
+    private fun mapResponse(response: TimeSeriesDailyResponse): Observable<State> {
         if (response.note != null) {
             // api usage exceed (5 calls per minute and 500 calls per day), stop the update temporarily
             return empty()
@@ -94,7 +83,7 @@ class StockTileInteractor @Inject constructor(
             .insert(TickerEntity(symbol = symbol, value = value))
             .subscribeOn(ioScheduler)
             .observeOn(mainThreadScheduler)
-            .andThen(just(Contract.State.DataState(symbol, value)))
+            .andThen(just(State.DataState(symbol, value)))
     }
 
 }
