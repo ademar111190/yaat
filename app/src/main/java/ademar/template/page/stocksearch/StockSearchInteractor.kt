@@ -1,68 +1,57 @@
 package ademar.template.page.stocksearch
 
-import ademar.template.arch.ArchErrorMapper
+import ademar.template.arch.ArchInteractor
 import ademar.template.di.qualifiers.QualifiedScheduler
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
 import ademar.template.network.api.AlphaVantageService
+import ademar.template.page.stocksearch.Contract.Command
+import ademar.template.page.stocksearch.Contract.State
 import dagger.hilt.android.scopes.ActivityScoped
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject.create
-import io.reactivex.rxjava3.subjects.Subject
-import timber.log.Timber
 import javax.inject.Inject
 
 @ActivityScoped
 class StockSearchInteractor @Inject constructor(
     private val service: AlphaVantageService,
-    private val subscriptions: CompositeDisposable,
+    subscriptions: CompositeDisposable,
     @QualifiedScheduler(IO) private val ioScheduler: Scheduler,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
     @QualifiedScheduler(MAIN_THREAD) private val mainThreadScheduler: Scheduler,
-) : ArchErrorMapper<Contract.State> by ArchErrorMapper.Impl(Contract.State::ErrorState) {
+) : ArchInteractor<Command, State>(
+    errorFactory = State::ErrorState,
+    subscriptions = subscriptions,
+    backgroundScheduler = computationScheduler,
+    foregroundScheduler = mainThreadScheduler,
+    output = create(),
+) {
 
-    val output: Subject<Contract.State> = create()
-
-    fun bind(view: Contract.View) {
-        subscriptions.add(
-            view.output
-                .subscribeOn(computationScheduler)
-                .observeOn(mainThreadScheduler)
-                .flatMap(::map)
-                .onErrorResumeNext(::mapError)
-                .subscribe(output::onNext, Timber::e)
-        )
+    override fun map(
+        command: Command,
+    ): Observable<State> = when (command) {
+        is Command.Initial -> initial()
+        is Command.Search -> search(command.term)
+        is Command.VoiceSearch -> search(command.term)
     }
 
-    fun unbind() {
-        subscriptions.clear()
-    }
-
-    private fun map(
-        command: Contract.Command,
-    ): Observable<Contract.State> = when (command) {
-        is Contract.Command.Initial -> initial()
-        is Contract.Command.Search -> search(command.term)
-        is Contract.Command.VoiceSearch -> search(command.term)
-    }
-
-    private fun initial(): Observable<Contract.State> {
-        return Observable.just(Contract.State.NoSearch)
+    private fun initial(): Observable<State> {
+        return Observable.just(State.NoSearch)
     }
 
     private fun search(
         term: String,
-    ): Observable<Contract.State> {
+    ): Observable<State> {
         if (term.isEmpty()) {
-            return Observable.just(Contract.State.NoSearch)
+            return Observable.just(State.NoSearch)
         }
-        output.onNext(Contract.State.Searching)
+        output.onNext(State.Searching)
         return service.search(keywords = term)
             .subscribeOn(ioScheduler)
             .observeOn(mainThreadScheduler)
-            .map<Contract.State> { response ->
-                Contract.State.SearchResult(
+            .map<State> { response ->
+                State.SearchResult(
                     response.bestMatches?.mapNotNull {
                         val symbol = it?.symbol
                         val name = it?.name

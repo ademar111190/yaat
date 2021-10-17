@@ -1,6 +1,9 @@
 package ademar.template.page.stocksearch
 
 import ademar.template.R
+import ademar.template.arch.ArchBinder
+import ademar.template.page.stocksearch.Contract.Command
+import ademar.template.page.stocksearch.Contract.Model
 import ademar.template.widget.AfterTextChanged
 import android.content.Intent
 import android.os.Bundle
@@ -23,11 +26,12 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class StockSearchActivity : AppCompatActivity(), Contract.View {
 
-    @Inject lateinit var subscriptions: CompositeDisposable
+    @Inject override lateinit var subscriptions: CompositeDisposable
     @Inject lateinit var presenter: StockSearchPresenter
     @Inject lateinit var interactor: StockSearchInteractor
+    @Inject lateinit var archBinder: ArchBinder
 
-    override val output: Subject<Contract.Command> = create()
+    override val output: Subject<Command> = create()
 
     private val termEmitter: Subject<String> = create()
     private val adapter = StockSearchAdapter()
@@ -58,28 +62,19 @@ class StockSearchActivity : AppCompatActivity(), Contract.View {
         toolbar.setNavigationOnClickListener { finish() }
 
         findViewById<RecyclerView>(R.id.list).adapter = adapter
+        archBinder.bind(this, interactor, presenter)
     }
 
     override fun onResume() {
         super.onResume()
-        subscriptions.addAll(
+        subscriptions.add(
             termEmitter
                 .throttleWithTimeout(1000, MILLISECONDS)
-                .map(Contract.Command::Search)
-                .subscribe(output::onNext, Timber::e),
-            presenter.output.subscribe(::render, Timber::e),
+                .map(Command::Search)
+                .subscribe(output::onNext, Timber::e)
         )
-        presenter.bind()
-        interactor.bind(this)
-        output.onNext(Contract.Command.Initial)
+        output.onNext(Command.Initial)
         onSearchChanged(findViewById<EditText>(R.id.search_field).text.toString())
-    }
-
-    override fun onPause() {
-        super.onPause()
-        presenter.unbind()
-        interactor.unbind()
-        subscriptions.clear()
     }
 
     override fun onActivityResult(
@@ -91,7 +86,7 @@ class StockSearchActivity : AppCompatActivity(), Contract.View {
         if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
             val term = data.getStringArrayListExtra(EXTRA_RESULTS)?.firstOrNull()
             if (term != null) {
-                output.onNext(Contract.Command.VoiceSearch(term))
+                output.onNext(Command.VoiceSearch(term))
             }
         }
     }
@@ -110,33 +105,33 @@ class StockSearchActivity : AppCompatActivity(), Contract.View {
         termEmitter.onNext(term)
     }
 
-    private fun render(model: Contract.Model) {
+    override fun render(model: Model) {
         val load = findViewById<ProgressBar>(R.id.load)
         val error = findViewById<TextView>(R.id.error)
         val list = findViewById<RecyclerView>(R.id.list)
 
         when (model) {
-            is Contract.Model.Loading -> {
+            is Model.Loading -> {
                 load.visibility = View.VISIBLE
                 error.visibility = View.GONE
                 list.visibility = View.GONE
             }
 
-            is Contract.Model.Error -> {
+            is Model.Error -> {
                 load.visibility = View.GONE
                 error.visibility = View.VISIBLE
                 list.visibility = View.GONE
                 error.text = model.message
             }
 
-            is Contract.Model.Empty -> {
+            is Model.Empty -> {
                 load.visibility = View.GONE
                 error.visibility = View.VISIBLE
                 list.visibility = View.GONE
                 error.text = model.message
             }
 
-            is Contract.Model.DataModel -> {
+            is Model.DataModel -> {
                 load.visibility = View.GONE
                 error.visibility = View.GONE
                 list.visibility = View.VISIBLE

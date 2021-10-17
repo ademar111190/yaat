@@ -1,62 +1,50 @@
 package ademar.template.page.stocksearch
 
 import ademar.template.R
-import ademar.template.arch.ArchErrorMapper
+import ademar.template.arch.ArchPresenter
 import ademar.template.di.qualifiers.QualifiedScheduler
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.COMPUTATION
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.MAIN_THREAD
+import ademar.template.page.stocksearch.Contract.Model
+import ademar.template.page.stocksearch.Contract.State
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ActivityScoped
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject.createDefault
-import io.reactivex.rxjava3.subjects.Subject
-import timber.log.Timber
 import javax.inject.Inject
 
 @ActivityScoped
 class StockSearchPresenter @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val interactor: StockSearchInteractor,
-    private val subscriptions: CompositeDisposable,
+    subscriptions: CompositeDisposable,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
     @QualifiedScheduler(MAIN_THREAD) private val mainThreadScheduler: Scheduler,
-) : ArchErrorMapper<Contract.Model> by ArchErrorMapper.Impl(Contract.Model::Error) {
+) : ArchPresenter<State, Model>(
+    errorFactory = Model::Error,
+    subscriptions = subscriptions,
+    backgroundScheduler = computationScheduler,
+    foregroundScheduler = mainThreadScheduler,
+    output = createDefault(Model.Loading),
+) {
 
-    val output: Subject<Contract.Model> = createDefault(Contract.Model.Loading)
-
-    fun bind() {
-        subscriptions.add(
-            interactor.output
-                .subscribeOn(computationScheduler)
-                .observeOn(mainThreadScheduler)
-                .map(::map)
-                .onErrorResumeNext(::mapError)
-                .subscribe(output::onNext, Timber::e)
-        )
-    }
-
-    fun unbind() {
-        subscriptions.clear()
-    }
-
-    private fun map(state: Contract.State): Contract.Model {
+    override fun map(state: State): Model {
         return when (state) {
-            is Contract.State.NoSearch -> Contract.Model.Empty(
+            is State.NoSearch -> Model.Empty(
                 context.getString(R.string.stocks_search_empty),
             )
-            is Contract.State.Searching -> Contract.Model.Loading
-            is Contract.State.ErrorState -> Contract.Model.Error(
+            is State.Searching -> Model.Loading
+            is State.ErrorState -> Model.Error(
                 state.message,
             )
-            is Contract.State.SearchResult -> {
+            is State.SearchResult -> {
                 if (state.symbols.isEmpty()) {
-                    Contract.Model.Empty(
+                    Model.Empty(
                         context.getString(R.string.stocks_search_not_found),
                     )
                 } else {
-                    Contract.Model.DataModel(state.symbols)
+                    Model.DataModel(state.symbols)
                 }
             }
         }

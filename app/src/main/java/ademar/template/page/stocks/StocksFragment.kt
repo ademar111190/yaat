@@ -1,6 +1,9 @@
 package ademar.template.page.stocks
 
 import ademar.template.R
+import ademar.template.arch.ArchBinder
+import ademar.template.page.stocks.Contract.Command
+import ademar.template.page.stocks.Contract.Model
 import ademar.template.widget.Reselectable
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -17,19 +20,19 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject.create
 import io.reactivex.rxjava3.subjects.Subject
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class StocksFragment : Fragment(), Reselectable, Contract.View {
 
-    @Inject lateinit var subscriptions: CompositeDisposable
+    @Inject override lateinit var subscriptions: CompositeDisposable
     @Inject lateinit var presenter: StockPresenter
     @Inject lateinit var interactor: StockInteractor
+    @Inject lateinit var archBinder: ArchBinder
 
     private val adapter = StockAdapter()
 
-    override val output: Subject<Contract.Command> = create()
+    override val output: Subject<Command> = create()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.page_stocks, container, false)
@@ -40,60 +43,53 @@ class StocksFragment : Fragment(), Reselectable, Contract.View {
         view.findViewById<Toolbar>(R.id.toolbar).setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.stock_menu_search -> {
-                    output.onNext(Contract.Command.Search)
-                    output.onNext(Contract.Command.Initial)
+                    output.onNext(Command.Search)
+                    output.onNext(Command.Initial)
                 }
                 else -> null
             } != null
         }
         view.findViewById<RecyclerView>(R.id.list).adapter = adapter
+        archBinder.bind(this, interactor, presenter)
     }
 
     override fun onResume() {
         super.onResume()
-        presenter.bind()
-        interactor.bind(this)
-        subscriptions.add(presenter.output.subscribe(::render, Timber::e))
-        output.onNext(Contract.Command.Initial)
+        output.onNext(Command.Initial)
     }
 
-    override fun onPause() {
-        super.onPause()
-        presenter.unbind()
-        interactor.unbind()
-        subscriptions.clear()
+    override fun onReselected() {
+        view?.findViewById<RecyclerView>(R.id.list)?.scrollToPosition(0)
     }
 
-    override fun onReselected() = Unit
-
-    private fun render(model: Contract.Model) {
+    override fun render(model: Model) {
         val view = view ?: return
         val load = view.findViewById<ProgressBar>(R.id.load)
         val error = view.findViewById<TextView>(R.id.error)
         val list = view.findViewById<RecyclerView>(R.id.list)
 
         when (model) {
-            is Contract.Model.Loading -> {
+            is Model.Loading -> {
                 load.visibility = VISIBLE
                 error.visibility = GONE
                 list.visibility = GONE
             }
 
-            is Contract.Model.Error -> {
+            is Model.Error -> {
                 load.visibility = GONE
                 error.visibility = VISIBLE
                 list.visibility = GONE
                 error.text = model.message
             }
 
-            is Contract.Model.Empty -> {
+            is Model.Empty -> {
                 load.visibility = GONE
                 error.visibility = VISIBLE
                 list.visibility = GONE
                 error.text = model.message
             }
 
-            is Contract.Model.DataModel -> {
+            is Model.DataModel -> {
                 load.visibility = GONE
                 error.visibility = GONE
                 list.visibility = VISIBLE
