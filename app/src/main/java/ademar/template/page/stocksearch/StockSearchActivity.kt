@@ -34,7 +34,8 @@ class StockSearchActivity : AppCompatActivity(), Contract.View {
     override val output: Subject<Command> = create()
 
     private val termEmitter: Subject<String> = create()
-    private val adapter = StockSearchAdapter()
+    private val adapter = StockSearchAdapter {
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
