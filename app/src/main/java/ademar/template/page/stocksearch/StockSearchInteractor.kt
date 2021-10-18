@@ -33,7 +33,6 @@ class StockSearchInteractor @Inject constructor(
     ): Observable<State> = when (command) {
         is Command.Initial -> initial()
         is Command.Search -> search(command.term)
-        is Command.VoiceSearch -> search(command.term)
     }
 
     private fun initial(): Observable<State> {

@@ -12,7 +12,7 @@
         android:shortcutShortLabel="@string/page_title_dashboard">
         <intent
             android:action="ademar.template.action.dashboard"
-            android:targetClass="ademar.template.MainActivity"
+            android:targetClass="ademar.template.StartActivity"
             android:targetPackage="ademar.template" />
     </shortcut>
 
@@ -25,7 +25,7 @@
         android:shortcutShortLabel="@string/page_title_stocks">
         <intent
             android:action="ademar.template.action.stocks"
-            android:targetClass="ademar.template.MainActivity"
+            android:targetClass="ademar.template.StartActivity"
             android:targetPackage="ademar.template" />
     </shortcut>
 
@@ -38,7 +38,7 @@
         android:shortcutShortLabel="@string/page_title_settings">
         <intent
             android:action="ademar.template.action.settings"
-            android:targetClass="ademar.template.MainActivity"
+            android:targetClass="ademar.template.StartActivity"
             android:targetPackage="ademar.template" />
     </shortcut>
 

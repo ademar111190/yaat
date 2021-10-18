@@ -87,7 +87,7 @@ class StockSearchActivity : AppCompatActivity(), Contract.View {
         if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
             val term = data.getStringArrayListExtra(EXTRA_RESULTS)?.firstOrNull()
             if (term != null) {
-                output.onNext(Command.VoiceSearch(term))
+                findViewById<EditText>(R.id.search_field).setText(term)
             }
         }
     }

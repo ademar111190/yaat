@@ -14,10 +14,6 @@ interface Contract {
             val term: String,
         ) : Command()
 
-        data class VoiceSearch(
-            val term: String,
-        ) : Command()
-
     }
 
     sealed class State {
