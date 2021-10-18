@@ -34,15 +34,25 @@ class StockTilePresenter @Inject constructor(
 
     override fun map(state: Contract.State): Contract.Model = when (state) {
         is Contract.State.InquiryState -> Contract.Model.Loading
+        is Contract.State.DeletedState -> Contract.Model.Deleted(
+            context.getString(R.string.stocks_tile_deleted, state.symbol),
+            context.getString(R.string.stocks_tile_readd),
+        )
         is Contract.State.NoSymbol -> Contract.Model.Loading
         is Contract.State.ErrorState -> Contract.Model.Error(
             state.message,
             context.getString(R.string.stocks_tile_retry),
         )
-        is Contract.State.DataState -> Contract.Model.DataModel(
-            symbol = state.symbol,
-            value = state.value.toString(),
-        )
+        is Contract.State.DataState -> {
+            if (state.value == 0.0) {
+                Contract.Model.Loading
+            } else {
+                Contract.Model.DataModel(
+                    symbol = state.symbol,
+                    value = state.value.toString(),
+                )
+            }
+        }
     }
 
 }

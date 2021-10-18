@@ -16,11 +16,19 @@ interface Contract {
             val symbol: String,
         ) : Command()
 
+        data class Delete(
+            val symbol: String,
+        ) : Command()
+
     }
 
     sealed class State {
 
         object NoSymbol : State()
+
+        data class DeletedState(
+            val symbol: String,
+        ) : State()
 
         data class InquiryState(
             val symbol: String,
@@ -40,6 +48,11 @@ interface Contract {
     sealed class Model {
 
         object Loading : Model()
+
+        data class Deleted(
+            val message: String,
+            val retry: String,
+        ) : Model()
 
         data class Error(
             val message: String,

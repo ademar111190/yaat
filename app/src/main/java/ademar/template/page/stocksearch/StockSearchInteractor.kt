@@ -1,6 +1,8 @@
 package ademar.template.page.stocksearch
 
 import ademar.template.arch.ArchInteractor
+import ademar.template.db.AppDatabase
+import ademar.template.db.TickerEntity
 import ademar.template.di.qualifiers.QualifiedScheduler
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
 import ademar.template.network.api.AlphaVantageService
@@ -15,7 +17,9 @@ import javax.inject.Inject
 
 @ActivityScoped
 class StockSearchInteractor @Inject constructor(
+    private val db: AppDatabase,
     private val service: AlphaVantageService,
+    private val navigator: StockSearchNavigator,
     subscriptions: CompositeDisposable,
     @QualifiedScheduler(IO) private val ioScheduler: Scheduler,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
@@ -33,6 +37,7 @@ class StockSearchInteractor @Inject constructor(
     ): Observable<State> = when (command) {
         is Command.Initial -> initial()
         is Command.Search -> search(command.term)
+        is Command.ItemSelected -> itemSelected(command.item)
     }
 
     private fun initial(): Observable<State> {
@@ -65,6 +70,17 @@ class StockSearchInteractor @Inject constructor(
                 )
             }
             .toObservable()
+    }
+
+    private fun itemSelected(item: Contract.Item): Observable<State> {
+        return db.tickerDao()
+            .insert(TickerEntity(item.symbol, 0.0))
+            .subscribeOn(ioScheduler)
+            .observeOn(mainThreadScheduler)
+            .doOnComplete {
+                navigator.close()
+            }
+            .andThen(Observable.empty())
     }
 
 }

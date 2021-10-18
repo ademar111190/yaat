@@ -2,9 +2,11 @@ package ademar.template.page.stocks.tile
 
 import ademar.template.R
 import ademar.template.arch.ArchBinder
+import ademar.template.page.stocks.tile.Contract.Command
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -29,19 +31,22 @@ class StockTileView @JvmOverloads constructor(
     @Inject lateinit var interactor: StockTileInteractor
     @Inject lateinit var archBinder: ArchBinder
 
-    override val output: Subject<Contract.Command> = createDefault(Contract.Command.Initial)
+    override val output: Subject<Command> = createDefault(Command.Initial)
+    private val popup = StockTilePopup("", output)
 
     init {
         LayoutInflater.from(context).inflate(R.layout.tile_stock, this, true)
         layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
         findViewById<Button>(R.id.retry).setOnClickListener {
-            output.onNext(Contract.Command.Retry)
+            output.onNext(Command.Retry)
         }
+        findViewById<View>(R.id.content).setOnClickListener(popup)
         archBinder.bind(this, interactor, presenter)
     }
 
     fun bind(symbol: String) {
-        output.onNext(Contract.Command.Bind(symbol))
+        output.onNext(Command.Bind(symbol))
+        popup.symbol = symbol
     }
 
     override fun render(model: Contract.Model) {
@@ -75,7 +80,18 @@ class StockTileView @JvmOverloads constructor(
                 retry.text = model.retry
             }
 
-            Contract.Model.Loading -> {
+            is Contract.Model.Deleted -> {
+                title.visibility = GONE
+                value.visibility = GONE
+                load.visibility = GONE
+                error.visibility = VISIBLE
+                retry.visibility = VISIBLE
+
+                error.text = model.message
+                retry.text = model.retry
+            }
+
+            is Contract.Model.Loading -> {
                 title.visibility = GONE
                 value.visibility = GONE
                 load.visibility = VISIBLE

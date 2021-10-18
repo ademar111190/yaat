@@ -14,6 +14,10 @@ interface Contract {
             val term: String,
         ) : Command()
 
+        data class ItemSelected(
+            val item: Item,
+        ) : Command()
+
     }
 
     sealed class State {

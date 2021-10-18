@@ -5,6 +5,7 @@ import ademar.template.db.AppDatabase
 import ademar.template.db.TickerEntity
 import ademar.template.di.qualifiers.QualifiedScheduler
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
+import ademar.template.ext.valueOrError
 import ademar.template.network.api.AlphaVantageService
 import ademar.template.network.payload.TimeSeriesDailyResponse
 import ademar.template.page.stocks.tile.Contract.Command
@@ -40,11 +41,37 @@ class StockTileInteractor @Inject constructor(
         command: Command,
     ): Observable<State> = when (command) {
         is Command.Initial -> just(State.NoSymbol)
-        is Command.Retry -> {
-            output.onNext(State.NoSymbol)
-            search(lastSymbol)
-        }
+        is Command.Retry -> retry()
         is Command.Bind -> search(command.symbol)
+        is Command.Delete -> delete(command.symbol)
+    }
+
+    private fun retry(): Observable<State> {
+        return output.valueOrError()
+            .subscribeOn(ioScheduler)
+            .observeOn(mainThreadScheduler)
+            .flatMapObservable { lastState ->
+                if (lastState is State.DeletedState) {
+                    reAdd(lastState.symbol)
+                } else {
+                    retrySearch()
+                }
+            }
+            .onErrorResumeWith(retrySearch())
+    }
+
+    private fun reAdd(symbol: String): Observable<State> {
+        output.onNext(State.NoSymbol)
+        return db.tickerDao()
+            .insert(TickerEntity(symbol, 0.0))
+            .subscribeOn(ioScheduler)
+            .observeOn(mainThreadScheduler)
+            .andThen(search(symbol))
+    }
+
+    private fun retrySearch(): Observable<State> {
+        output.onNext(State.NoSymbol)
+        return search(lastSymbol)
     }
 
     private fun search(symbol: String): Observable<State> {
@@ -67,6 +94,15 @@ class StockTileInteractor @Inject constructor(
                     .onErrorResumeNext(::mapError)
             }
             .onErrorResumeNext(::mapError)
+    }
+
+    private fun delete(symbol: String): Observable<State> {
+        output.onNext(State.NoSymbol)
+        return db.tickerDao()
+            .delete(TickerEntity(symbol, 0.0))
+            .subscribeOn(ioScheduler)
+            .observeOn(mainThreadScheduler)
+            .andThen(just(State.DeletedState(symbol)))
     }
 
     private fun mapResponse(response: TimeSeriesDailyResponse): Observable<State> {
