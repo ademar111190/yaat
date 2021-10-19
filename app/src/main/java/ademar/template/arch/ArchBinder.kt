@@ -21,9 +21,9 @@ class ArchBinder @Inject constructor(
     application: Application,
 ) : FragmentLifecycleCallbacks(), ActivityLifecycleCallbacks, OnAttachStateChangeListener {
 
-    private val activityBinders = mutableListOf<ActivityBinder>()
-    private val fragmentBinders = mutableListOf<FragmentBinder>()
-    private val viewBinders = mutableListOf<ViewBinder>()
+    private val activityBinders = mutableListOf<Binder>()
+    private val fragmentBinders = mutableListOf<Binder>()
+    private val viewBinders = mutableListOf<Binder>()
 
     init {
         application.registerActivityLifecycleCallbacks(this)
@@ -37,15 +37,15 @@ class ArchBinder @Inject constructor(
     ) {
         when (view) {
             is Activity -> activityBinders.add(
-                ActivityBinder(
-                    view as ArchView<Any, Any>,
+                Binder(
+                    WeakReference(view as ArchView<Any, Any>),
                     interactor as ArchInteractor<Any, Any>,
                     presenter as ArchPresenter<Any, Any>,
                 )
             )
             is Fragment -> fragmentBinders.add(
-                FragmentBinder(
-                    view as ArchView<Any, Any>,
+                Binder(
+                    WeakReference(view as ArchView<Any, Any>),
                     interactor as ArchInteractor<Any, Any>,
                     presenter as ArchPresenter<Any, Any>,
                 )
@@ -53,7 +53,7 @@ class ArchBinder @Inject constructor(
             is View -> {
                 view.addOnAttachStateChangeListener(this)
                 viewBinders.add(
-                    ViewBinder(
+                    Binder(
                         WeakReference(view as ArchView<Any, Any>),
                         interactor as ArchInteractor<Any, Any>,
                         presenter as ArchPresenter<Any, Any>,
@@ -79,20 +79,22 @@ class ArchBinder @Inject constructor(
     override fun onActivityStarted(activity: Activity) = Unit
 
     override fun onActivityResumed(activity: Activity) {
-        activityBinders.filter { it.activity == activity }.onEach { binder ->
-            binder.activity.subscriptions.add(
-                binder.presenter.output.subscribe(binder.activity::render, Timber::e)
+        activityBinders.filter { it.view.get() == activity }.onEach { binder ->
+            val view = binder.view.get() ?: return@onEach
+            view.subscriptions.add(
+                binder.presenter.output.subscribe(view::render, Timber::e)
             )
             binder.presenter.bind(binder.interactor.output)
-            binder.interactor.bind(binder.activity.output)
+            binder.interactor.bind(view.output)
         }
     }
 
     override fun onActivityPaused(activity: Activity) {
-        activityBinders.filter { it.activity == activity }.onEach { binder ->
+        activityBinders.filter { it.view.get() == activity }.onEach { binder ->
+            val view = binder.view.get() ?: return@onEach
             binder.presenter.unbind()
             binder.interactor.unbind()
-            binder.activity.subscriptions.clear()
+            view.subscriptions.clear()
         }
     }
 
@@ -103,7 +105,7 @@ class ArchBinder @Inject constructor(
         if (activity is FragmentActivity) {
             activity.supportFragmentManager.unregisterFragmentLifecycleCallbacks(this)
         }
-        activityBinders.removeAll(activityBinders.filter { it.activity == activity })
+        activityBinders.removeAll(activityBinders.filter { it.view.get() == null || it.view.get() == activity })
     }
 
     // endregion
@@ -119,20 +121,22 @@ class ArchBinder @Inject constructor(
     override fun onFragmentStarted(fm: FragmentManager, f: Fragment) = Unit
 
     override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
-        fragmentBinders.filter { it.fragment == f }.onEach { binder ->
-            binder.fragment.subscriptions.add(
-                binder.presenter.output.subscribe(binder.fragment::render, Timber::e)
+        fragmentBinders.filter { it.view.get() == f }.onEach { binder ->
+            val view = binder.view.get() ?: return@onEach
+            view.subscriptions.add(
+                binder.presenter.output.subscribe(view::render, Timber::e)
             )
             binder.presenter.bind(binder.interactor.output)
-            binder.interactor.bind(binder.fragment.output)
+            binder.interactor.bind(view.output)
         }
     }
 
     override fun onFragmentPaused(fm: FragmentManager, f: Fragment) {
-        fragmentBinders.filter { it.fragment == f }.onEach { binder ->
+        fragmentBinders.filter { it.view.get() == f }.onEach { binder ->
+            val view = binder.view.get() ?: return@onEach
             binder.presenter.unbind()
             binder.interactor.unbind()
-            binder.fragment.subscriptions.clear()
+            view.subscriptions.clear()
         }
     }
 
@@ -141,7 +145,7 @@ class ArchBinder @Inject constructor(
     override fun onFragmentViewDestroyed(fm: FragmentManager, f: Fragment) = Unit
 
     override fun onFragmentDestroyed(fm: FragmentManager, f: Fragment) {
-        fragmentBinders.removeAll(fragmentBinders.filter { it.fragment == f })
+        fragmentBinders.removeAll(fragmentBinders.filter { it.view.get() == null || it.view.get() == f })
     }
 
     override fun onFragmentDetached(fm: FragmentManager, f: Fragment) = Unit
@@ -175,19 +179,7 @@ class ArchBinder @Inject constructor(
 
     // endregion
 
-    private data class ActivityBinder(
-        val activity: ArchView<Any, Any>,
-        val interactor: ArchInteractor<Any, Any>,
-        val presenter: ArchPresenter<Any, Any>,
-    )
-
-    private data class FragmentBinder(
-        val fragment: ArchView<Any, Any>,
-        val interactor: ArchInteractor<Any, Any>,
-        val presenter: ArchPresenter<Any, Any>,
-    )
-
-    private data class ViewBinder(
+    private data class Binder(
         val view: WeakReference<ArchView<Any, Any>>,
         val interactor: ArchInteractor<Any, Any>,
         val presenter: ArchPresenter<Any, Any>,
