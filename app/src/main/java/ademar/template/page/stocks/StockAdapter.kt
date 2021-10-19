@@ -9,6 +9,10 @@ class StockAdapter : RecyclerView.Adapter<StockViewHolder>() {
 
     private val data = mutableListOf<String>()
 
+    init {
+        setHasStableIds(true)
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StockViewHolder {
         return StockViewHolder(StockTileView(parent.context))
     }
@@ -18,6 +22,8 @@ class StockAdapter : RecyclerView.Adapter<StockViewHolder>() {
     }
 
     override fun getItemCount(): Int = data.size
+
+    override fun getItemId(position: Int): Long = data[position].hashCode().toLong()
 
     @SuppressLint("NotifyDataSetChanged")
     fun setItems(items: List<Contract.Item>) {

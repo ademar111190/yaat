@@ -49,7 +49,7 @@ class StockInteractor @Inject constructor(
                 }
             }
             .map<State> { symbols ->
-                State.DataState(symbols)
+                State.DataState(symbols.sortedBy { it.symbol })
             }
             .toObservable()
     }
