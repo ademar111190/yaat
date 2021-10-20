@@ -22,6 +22,7 @@ android {
         all {
             buildConfigField "String", "ALPHA_VANTAGE_URL", "\"https://www.alphavantage.co/\""
             buildConfigField "String", "ALPHA_VANTAGE_KEY", "\"${System.getenv("ALPHA_VANTAGE_KEY")}\""
+            buildConfigField "String", "MEMPOOL_URL", "\"https://mempool.space/\""
         }
         release {
             minifyEnabled true

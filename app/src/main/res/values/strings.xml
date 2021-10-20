@@ -13,4 +13,12 @@
     <string name="stocks_search_voice">Voice search</string>
     <string name="stocks_search_empty">Write your ticker on the field above.</string>
     <string name="stocks_search_not_found">No tickers found.</string>
+    <string name="dashboard_error">Failed to load, please try again later.</string>
+    <string name="dashboard_reload">Reload</string>
+    <string name="dashboard_progress_percent_title">Progress percent:</string>
+    <string name="dashboard_difficulty_change_title">Difficulty change:</string>
+    <string name="dashboard_estimated_retarget_date_title">Estimated retarget date:</string>
+    <string name="dashboard_remaining_blocks_title">Remaining blocks:</string>
+    <string name="dashboard_remaining_time_title">Remaining time:</string>
+    <string name="dashboard_previous_retarget_title">Previous retarget:</string>
 </resources>

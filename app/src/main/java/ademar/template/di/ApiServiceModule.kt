@@ -2,7 +2,9 @@ package ademar.template.di
 
 import ademar.template.di.qualifiers.QualifiedRetrofit
 import ademar.template.di.qualifiers.QualifiedRetrofitOption.ALPHA_VANTAGE
+import ademar.template.di.qualifiers.QualifiedRetrofitOption.MEMPOOL
 import ademar.template.network.api.AlphaVantageService
+import ademar.template.network.api.MempoolSpaceService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,5 +26,10 @@ object ApiServiceModule {
     fun providesAlphaVantageService(
         @QualifiedRetrofit(ALPHA_VANTAGE) retrofit: Retrofit,
     ): AlphaVantageService = retrofit.create(AlphaVantageService::class.java)
+
+    @[Provides Singleton]
+    fun providesMempoolSpaceService(
+        @QualifiedRetrofit(MEMPOOL) retrofit: Retrofit,
+    ): MempoolSpaceService = retrofit.create(MempoolSpaceService::class.java)
 
 }

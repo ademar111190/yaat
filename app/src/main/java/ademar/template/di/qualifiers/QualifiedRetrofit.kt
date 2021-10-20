@@ -7,5 +7,6 @@ import javax.inject.Qualifier
 annotation class QualifiedRetrofit(val option: QualifiedRetrofitOption)
 
 enum class QualifiedRetrofitOption {
-    ALPHA_VANTAGE
+    ALPHA_VANTAGE,
+    MEMPOOL,
 }

@@ -13,4 +13,12 @@
     <string name="stocks_search_voice">Busca por voz</string>
     <string name="stocks_search_empty">Escreva sua busca no campo acima.</string>
     <string name="stocks_search_not_found">Nenhum item encontrado.</string>
+    <string name="dashboard_error">Erro ao carregar, por favor tente novamente mais tarde.</string>
+    <string name="dashboard_reload">Recarregar</string>
+    <string name="dashboard_progress_percent_title">Percentual do progresso:</string>
+    <string name="dashboard_difficulty_change_title">Alteração na dificudade:</string>
+    <string name="dashboard_estimated_retarget_date_title">Data estimada para reavaliação:</string>
+    <string name="dashboard_remaining_blocks_title">Blocos remanescentes:</string>
+    <string name="dashboard_remaining_time_title">Tempo remanescente:</string>
+    <string name="dashboard_previous_retarget_title">Reavaliação anterior:</string>
 </resources>

@@ -3,6 +3,7 @@ package ademar.template.di
 import ademar.template.BuildConfig
 import ademar.template.di.qualifiers.QualifiedRetrofit
 import ademar.template.di.qualifiers.QualifiedRetrofitOption.ALPHA_VANTAGE
+import ademar.template.di.qualifiers.QualifiedRetrofitOption.MEMPOOL
 import ademar.template.network.adapter.CustomJsonFactory
 import com.squareup.moshi.Moshi
 import dagger.Module
@@ -61,6 +62,18 @@ object NetworkModule {
     ): Retrofit = Retrofit.Builder()
         .client(client)
         .baseUrl(BuildConfig.ALPHA_VANTAGE_URL)
+        .addCallAdapterFactory(rxJava3CallAdapterFactory)
+        .addConverterFactory(moshiConverterFactory)
+        .build()
+
+    @[Provides Singleton QualifiedRetrofit(MEMPOOL)]
+    fun providesMempoolSpaceRetrofit(
+        client: OkHttpClient,
+        rxJava3CallAdapterFactory: RxJava3CallAdapterFactory,
+        moshiConverterFactory: MoshiConverterFactory,
+    ): Retrofit = Retrofit.Builder()
+        .client(client)
+        .baseUrl(BuildConfig.MEMPOOL_URL)
         .addCallAdapterFactory(rxJava3CallAdapterFactory)
         .addConverterFactory(moshiConverterFactory)
         .build()
