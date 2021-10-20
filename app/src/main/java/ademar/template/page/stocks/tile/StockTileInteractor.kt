@@ -1,15 +1,16 @@
 package ademar.template.page.stocks.tile
 
 import ademar.template.arch.ArchInteractor
-import ademar.template.db.AppDatabase
-import ademar.template.db.TickerEntity
 import ademar.template.di.qualifiers.QualifiedScheduler
 import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
 import ademar.template.ext.valueOrError
-import ademar.template.network.api.AlphaVantageService
 import ademar.template.network.payload.TimeSeriesDailyResponse
 import ademar.template.page.stocks.tile.Contract.Command
 import ademar.template.page.stocks.tile.Contract.State
+import ademar.template.usecase.DeleteTicker
+import ademar.template.usecase.FetchTicker
+import ademar.template.usecase.FetchTimeSeriesDaily
+import ademar.template.usecase.SaveTicker
 import dagger.hilt.android.scopes.ViewScoped
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Observable.empty
@@ -21,8 +22,10 @@ import javax.inject.Inject
 
 @ViewScoped
 class StockTileInteractor @Inject constructor(
-    private val service: AlphaVantageService,
-    private val db: AppDatabase,
+    private val fetchTicker: FetchTicker,
+    private val saveTicker: SaveTicker,
+    private val deleteTicker: DeleteTicker,
+    private val fetchTimeSeriesDaily: FetchTimeSeriesDaily,
     subscriptions: CompositeDisposable,
     @QualifiedScheduler(IO) private val ioScheduler: Scheduler,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
@@ -62,10 +65,7 @@ class StockTileInteractor @Inject constructor(
 
     private fun reAdd(symbol: String): Observable<State> {
         output.onNext(State.NoSymbol)
-        return db.tickerDao()
-            .insert(TickerEntity(symbol, 0.0))
-            .subscribeOn(ioScheduler)
-            .observeOn(mainThreadScheduler)
+        return saveTicker.justSymbol(symbol)
             .andThen(search(symbol))
     }
 
@@ -76,9 +76,7 @@ class StockTileInteractor @Inject constructor(
 
     private fun search(symbol: String): Observable<State> {
         lastSymbol = symbol
-        return db.tickerDao().getBySymbol(symbol)
-            .subscribeOn(ioScheduler)
-            .observeOn(mainThreadScheduler)
+        return fetchTicker.fromSymbol(symbol)
             .map<State> { ticker ->
                 State.DataState(
                     ticker.symbol,
@@ -87,9 +85,7 @@ class StockTileInteractor @Inject constructor(
             }
             .flatMapObservable { state ->
                 output.onNext(state)
-                service.timeSeriesDaily(symbol = symbol)
-                    .subscribeOn(ioScheduler)
-                    .observeOn(mainThreadScheduler)
+                fetchTimeSeriesDaily.fromSymbol(symbol)
                     .flatMapObservable(::mapResponse)
                     .onErrorResumeNext(::mapError)
             }
@@ -98,10 +94,7 @@ class StockTileInteractor @Inject constructor(
 
     private fun delete(symbol: String): Observable<State> {
         output.onNext(State.NoSymbol)
-        return db.tickerDao()
-            .delete(TickerEntity(symbol, 0.0))
-            .subscribeOn(ioScheduler)
-            .observeOn(mainThreadScheduler)
+        return deleteTicker.allWithSymbol(symbol)
             .andThen(just(State.DeletedState(symbol)))
     }
 
@@ -115,10 +108,7 @@ class StockTileInteractor @Inject constructor(
         val value = response.timeSeries?.series?.values?.first()?.close?.toDouble()
             ?: return mapError(Exception("No value found"))
 
-        return db.tickerDao()
-            .insert(TickerEntity(symbol = symbol, value = value))
-            .subscribeOn(ioScheduler)
-            .observeOn(mainThreadScheduler)
+        return saveTicker(symbol, value)
             .andThen(just(State.DataState(symbol, value)))
     }
 

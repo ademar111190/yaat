@@ -1,11 +1,12 @@
 package ademar.template.page.stocks
 
 import ademar.template.arch.ArchInteractor
-import ademar.template.db.AppDatabase
 import ademar.template.di.qualifiers.QualifiedScheduler
-import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
+import ademar.template.di.qualifiers.QualifiedSchedulerOption.COMPUTATION
+import ademar.template.di.qualifiers.QualifiedSchedulerOption.MAIN_THREAD
 import ademar.template.page.stocks.Contract.Command
 import ademar.template.page.stocks.Contract.State
+import ademar.template.usecase.FetchTicker
 import dagger.hilt.android.scopes.FragmentScoped
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Scheduler
@@ -15,10 +16,9 @@ import javax.inject.Inject
 
 @FragmentScoped
 class StockInteractor @Inject constructor(
-    private val db: AppDatabase,
+    private val fetchTicker: FetchTicker,
     private val stockNavigator: StockNavigator,
     subscriptions: CompositeDisposable,
-    @QualifiedScheduler(IO) private val ioScheduler: Scheduler,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
     @QualifiedScheduler(MAIN_THREAD) private val mainThreadScheduler: Scheduler,
 ) : ArchInteractor<Command, State>(
@@ -37,9 +37,7 @@ class StockInteractor @Inject constructor(
     }
 
     private fun initial(): Observable<State> {
-        return db.tickerDao().getAll()
-            .subscribeOn(ioScheduler)
-            .observeOn(mainThreadScheduler)
+        return fetchTicker.all()
             .map { tickers ->
                 tickers.map {
                     Contract.Item(

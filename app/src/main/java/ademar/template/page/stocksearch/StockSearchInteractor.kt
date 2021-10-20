@@ -1,13 +1,13 @@
 package ademar.template.page.stocksearch
 
 import ademar.template.arch.ArchInteractor
-import ademar.template.db.AppDatabase
-import ademar.template.db.TickerEntity
 import ademar.template.di.qualifiers.QualifiedScheduler
-import ademar.template.di.qualifiers.QualifiedSchedulerOption.*
-import ademar.template.network.api.AlphaVantageService
+import ademar.template.di.qualifiers.QualifiedSchedulerOption.COMPUTATION
+import ademar.template.di.qualifiers.QualifiedSchedulerOption.MAIN_THREAD
 import ademar.template.page.stocksearch.Contract.Command
 import ademar.template.page.stocksearch.Contract.State
+import ademar.template.usecase.SaveTicker
+import ademar.template.usecase.SearchTicker
 import dagger.hilt.android.scopes.ActivityScoped
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Scheduler
@@ -17,11 +17,10 @@ import javax.inject.Inject
 
 @ActivityScoped
 class StockSearchInteractor @Inject constructor(
-    private val db: AppDatabase,
-    private val service: AlphaVantageService,
+    private val searchTicker: SearchTicker,
+    private val saveTicker: SaveTicker,
     private val navigator: StockSearchNavigator,
     subscriptions: CompositeDisposable,
-    @QualifiedScheduler(IO) private val ioScheduler: Scheduler,
     @QualifiedScheduler(COMPUTATION) private val computationScheduler: Scheduler,
     @QualifiedScheduler(MAIN_THREAD) private val mainThreadScheduler: Scheduler,
 ) : ArchInteractor<Command, State>(
@@ -51,9 +50,7 @@ class StockSearchInteractor @Inject constructor(
             return Observable.just(State.NoSearch)
         }
         output.onNext(State.Searching)
-        return service.search(keywords = term)
-            .subscribeOn(ioScheduler)
-            .observeOn(mainThreadScheduler)
+        return searchTicker.bySymbol(term)
             .map<State> { response ->
                 State.SearchResult(
                     response.bestMatches?.mapNotNull {
@@ -73,10 +70,7 @@ class StockSearchInteractor @Inject constructor(
     }
 
     private fun itemSelected(item: Contract.Item): Observable<State> {
-        return db.tickerDao()
-            .insert(TickerEntity(item.symbol, 0.0))
-            .subscribeOn(ioScheduler)
-            .observeOn(mainThreadScheduler)
+        return saveTicker.justSymbol(item.symbol)
             .doOnComplete {
                 navigator.close()
             }
