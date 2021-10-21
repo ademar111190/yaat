@@ -40,6 +40,7 @@
 
             <TextView
                 android:id="@+id/dashboard_progress_percent_title"
+                style="@style/TextAppearance.MaterialComponents.Body1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -54,20 +55,22 @@
 
             <TextView
                 android:id="@+id/dashboard_progress_percent_value"
+                style="@style/TextAppearance.MaterialComponents.Headline5"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
                 android:layout_marginEnd="8dp"
                 android:gravity="start"
-                app:layout_constraintBottom_toTopOf="@+id/dashboard_difficulty_change_value"
+                app:layout_constraintBottom_toBottomOf="@+id/dashboard_progress_percent_title"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toEndOf="@+id/horizontal_guide"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/dashboard_progress_percent_title"
                 tools:text="@tools:sample/cities" />
 
             <TextView
                 android:id="@+id/dashboard_difficulty_change_title"
+                style="@style/TextAppearance.MaterialComponents.Body1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -82,20 +85,22 @@
 
             <TextView
                 android:id="@+id/dashboard_difficulty_change_value"
+                style="@style/TextAppearance.MaterialComponents.Headline5"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
                 android:layout_marginEnd="8dp"
                 android:gravity="start"
-                app:layout_constraintBottom_toTopOf="@+id/dashboard_estimated_retarget_date_value"
+                app:layout_constraintBottom_toBottomOf="@+id/dashboard_difficulty_change_title"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toEndOf="@+id/horizontal_guide"
-                app:layout_constraintTop_toBottomOf="@+id/dashboard_progress_percent_value"
+                app:layout_constraintTop_toTopOf="@+id/dashboard_difficulty_change_title"
                 tools:text="@tools:sample/cities" />
 
             <TextView
                 android:id="@+id/dashboard_estimated_retarget_date_title"
+                style="@style/TextAppearance.MaterialComponents.Body1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -110,20 +115,22 @@
 
             <TextView
                 android:id="@+id/dashboard_estimated_retarget_date_value"
+                style="@style/TextAppearance.MaterialComponents.Headline5"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
                 android:layout_marginEnd="8dp"
                 android:gravity="start"
-                app:layout_constraintBottom_toTopOf="@+id/dashboard_remaining_blocks_value"
+                app:layout_constraintBottom_toBottomOf="@+id/dashboard_estimated_retarget_date_title"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toEndOf="@+id/horizontal_guide"
-                app:layout_constraintTop_toBottomOf="@+id/dashboard_difficulty_change_value"
+                app:layout_constraintTop_toTopOf="@+id/dashboard_estimated_retarget_date_title"
                 tools:text="@tools:sample/cities" />
 
             <TextView
                 android:id="@+id/dashboard_remaining_blocks_title"
+                style="@style/TextAppearance.MaterialComponents.Body1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -138,20 +145,22 @@
 
             <TextView
                 android:id="@+id/dashboard_remaining_blocks_value"
+                style="@style/TextAppearance.MaterialComponents.Headline5"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
                 android:layout_marginEnd="8dp"
                 android:gravity="start"
-                app:layout_constraintBottom_toTopOf="@+id/dashboard_remaining_time_value"
+                app:layout_constraintBottom_toBottomOf="@+id/dashboard_remaining_blocks_title"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toEndOf="@+id/horizontal_guide"
-                app:layout_constraintTop_toBottomOf="@+id/dashboard_estimated_retarget_date_value"
+                app:layout_constraintTop_toTopOf="@+id/dashboard_remaining_blocks_title"
                 tools:text="@tools:sample/cities" />
 
             <TextView
                 android:id="@+id/dashboard_remaining_time_title"
+                style="@style/TextAppearance.MaterialComponents.Body1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -166,20 +175,22 @@
 
             <TextView
                 android:id="@+id/dashboard_remaining_time_value"
+                style="@style/TextAppearance.MaterialComponents.Headline5"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
                 android:layout_marginEnd="8dp"
                 android:gravity="start"
-                app:layout_constraintBottom_toTopOf="@+id/dashboard_previous_retarget_value"
+                app:layout_constraintBottom_toBottomOf="@+id/dashboard_remaining_time_title"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toEndOf="@+id/horizontal_guide"
-                app:layout_constraintTop_toBottomOf="@+id/dashboard_remaining_blocks_value"
+                app:layout_constraintTop_toTopOf="@+id/dashboard_remaining_time_title"
                 tools:text="@tools:sample/cities" />
 
             <TextView
                 android:id="@+id/dashboard_previous_retarget_title"
+                style="@style/TextAppearance.MaterialComponents.Body1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -194,21 +205,22 @@
 
             <TextView
                 android:id="@+id/dashboard_previous_retarget_value"
+                style="@style/TextAppearance.MaterialComponents.Headline5"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
                 android:layout_marginEnd="8dp"
                 android:gravity="start"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toBottomOf="@+id/dashboard_previous_retarget_title"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toEndOf="@+id/horizontal_guide"
-                app:layout_constraintTop_toBottomOf="@+id/dashboard_remaining_time_value"
+                app:layout_constraintTop_toTopOf="@+id/dashboard_previous_retarget_title"
                 tools:text="@tools:sample/cities" />
 
             <TextView
                 android:id="@+id/dashboard_error"
-                style="@style/TextAppearance.MaterialComponents.Headline5"
+                style="@style/TextAppearance.MaterialComponents.Body1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="32dp"

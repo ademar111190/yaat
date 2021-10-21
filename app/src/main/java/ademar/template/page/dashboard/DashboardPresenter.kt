@@ -13,6 +13,9 @@ import dagger.hilt.android.scopes.FragmentScoped
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject.create
+import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 
 @FragmentScoped
@@ -29,26 +32,34 @@ class DashboardPresenter @Inject constructor(
     output = create(),
 ) {
 
+    private val decimal = DecimalFormat("0.00%")
+    private val date = SimpleDateFormat("dd MMM yyyy", Locale.US)
+    private val time = SimpleDateFormat("D'd' hh:mm", Locale.US)
+
     override fun map(state: State): Model {
         return when (state) {
             is State.DataState -> Model.DataModel(
                 progressPercentTitle = context.getString(R.string.dashboard_progress_percent_title),
-                progressPercent = state.progressPercent.toString(),
+                progressPercent = decimal.format(state.progressPercent / 100),
                 difficultyChangeTitle = context.getString(R.string.dashboard_difficulty_change_title),
-                difficultyChange = state.difficultyChange.toString(),
+                difficultyChange = decimal.format(state.difficultyChange / 100),
                 estimatedRetargetDateTitle = context.getString(R.string.dashboard_estimated_retarget_date_title),
-                estimatedRetargetDate = state.estimatedRetargetDate.toString(),
+                estimatedRetargetDate = fromDateTime(date, state.estimatedRetargetDate),
                 remainingBlocksTitle = context.getString(R.string.dashboard_remaining_blocks_title),
                 remainingBlocks = state.remainingBlocks.toString(),
                 remainingTimeTitle = context.getString(R.string.dashboard_remaining_time_title),
-                remainingTime = state.remainingTime.toString(),
+                remainingTime = fromDateTime(time, state.remainingTime),
                 previousRetargetTitle = context.getString(R.string.dashboard_previous_retarget_title),
-                previousRetarget = state.previousRetarget.toString(),
+                previousRetarget = decimal.format(state.previousRetarget / 100),
             )
             is State.ErrorState -> Model.Error(
                 state.message,
             )
         }
+    }
+
+    private fun fromDateTime(formatter: SimpleDateFormat, timestamp: Double): String {
+        return formatter.format(Date(timestamp.toLong() * 1000L))
     }
 
 }
