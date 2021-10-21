@@ -1,6 +1,5 @@
 package ademar.template
 
-import ademar.template.page.home.HomeActivity
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

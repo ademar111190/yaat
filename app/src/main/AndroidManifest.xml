@@ -30,7 +30,7 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
-        <activity android:name=".page.home.HomeActivity" />
+        <activity android:name=".HomeActivity" />
 
         <activity android:name=".page.stocksearch.StockSearchActivity" />
 

@@ -24,7 +24,7 @@ object FragmentModule {
     @[Module InstallIn(FragmentComponent::class)]
     interface Declarations {
 
-        @Binds fun bindHomeView(impl: DashboardFragment): DashboardContract.View
+        @Binds fun bindDashboardView(impl: DashboardFragment): DashboardContract.View
 
         @Binds fun bindSettingsView(impl: SettingsFragment): SettingsContract.View
 

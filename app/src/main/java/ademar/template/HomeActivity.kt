@@ -1,8 +1,6 @@
-package ademar.template.page.home
+package ademar.template
 
-import ademar.template.R
 import ademar.template.page.dashboard.DashboardFragment
-import ademar.template.page.home.Contract.Command.Initial
 import ademar.template.page.settings.SettingsFragment
 import ademar.template.page.stocks.StocksFragment
 import ademar.template.widget.Reselectable
@@ -11,13 +9,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
-import io.reactivex.rxjava3.subjects.BehaviorSubject.createDefault
-import io.reactivex.rxjava3.subjects.Subject
 
 @AndroidEntryPoint
-class HomeActivity : AppCompatActivity(), Contract.View {
-
-    override val output: Subject<Contract.Command> = createDefault(Initial)
+class HomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -1,7 +1,6 @@
 package ademar.template.di
 
 import ademar.template.di.ActivityModule.Declarations
-import ademar.template.page.home.HomeActivity
 import ademar.template.page.stocksearch.StockSearchActivity
 import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
@@ -10,7 +9,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityComponent
-import ademar.template.page.home.Contract as HomeContract
 import ademar.template.page.stocksearch.Contract as StockSearchContract
 
 /**
@@ -31,9 +29,7 @@ object ActivityModule {
     @[Module InstallIn(ActivityComponent::class)]
     interface Declarations {
 
-        @Binds fun bindHomeView(impl: HomeActivity): HomeContract.View
-
-        @Binds fun bindSettingsView(impl: StockSearchActivity): StockSearchContract.View
+        @Binds fun bindStockSearchView(impl: StockSearchActivity): StockSearchContract.View
 
     }
 
