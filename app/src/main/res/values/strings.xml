@@ -21,4 +21,6 @@
     <string name="dashboard_remaining_blocks_title">Remaining blocks:</string>
     <string name="dashboard_remaining_time_title">Remaining time:</string>
     <string name="dashboard_previous_retarget_title">Previous retarget:</string>
+    <string name="settings_option_default_page_title">Initial page:</string>
+    <string name="settings_error">Failed to load, please try again later.</string>
 </resources>

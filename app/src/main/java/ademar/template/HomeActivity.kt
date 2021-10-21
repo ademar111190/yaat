@@ -3,15 +3,23 @@ package ademar.template
 import ademar.template.page.dashboard.DashboardFragment
 import ademar.template.page.settings.SettingsFragment
 import ademar.template.page.stocks.StocksFragment
+import ademar.template.usecase.InitialPage
+import ademar.template.usecase.InitialPagePreference
 import ademar.template.widget.Reselectable
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import timber.log.Timber
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
+
+    @Inject lateinit var subscriptions: CompositeDisposable
+    @Inject lateinit var initialPage: InitialPagePreference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,6 +32,11 @@ class HomeActivity : AppCompatActivity() {
         if (supportFragmentManager.fragments.isEmpty()) {
             finish()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        subscriptions.clear()
     }
 
     private fun setUpNavigation() {
@@ -84,6 +97,18 @@ class HomeActivity : AppCompatActivity() {
         }
         if (initial != null) {
             navigation.selectedItemId = initial
+        } else {
+            subscriptions.add(
+                initialPage.get().map { page ->
+                    when (page) {
+                        InitialPage.STOCKS -> R.id.navigation_stocks
+                        InitialPage.SETTINGS -> R.id.navigation_settings
+                        else -> R.id.navigation_dashboard
+                    }
+                }.subscribe({ id ->
+                    navigation.selectedItemId = id
+                }, Timber::e)
+            )
         }
     }
 

@@ -21,4 +21,6 @@
     <string name="dashboard_remaining_blocks_title">Blocos remanescentes:</string>
     <string name="dashboard_remaining_time_title">Tempo remanescente:</string>
     <string name="dashboard_previous_retarget_title">Reavaliação anterior:</string>
+    <string name="settings_option_default_page_title">Página inicial:</string>
+    <string name="settings_error">Erro ao carregar, por favor tente novamente mais tarde.</string>
 </resources>
